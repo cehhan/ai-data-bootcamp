@@ -1,0 +1,132 @@
+﻿{
+    "crossSells":  [
+                       {
+                           "profit":  133.47,
+                           "count":  1,
+                           "combo":  "Computer Printout Paper with Letter-Trim Perforations + Newell 317 + SAFCO Boltless Steel Shelving + Sanford EarthWrite Recycled Pencils, Medium Soft, #2 + Staple envelope + Tennsco Snap-Together Open Shelving Units, Starter Sets and Add-On Units + Xerox 1911"
+                       },
+                       {
+                           "profit":  249.15,
+                           "count":  1,
+                           "combo":  "Electrix Architect\u0027s Clamp-On Swing Arm Lamp, Black + Electrix Architect\u0027s Clamp-On Swing Arm Lamp, Black"
+                       },
+                       {
+                           "profit":  37.15,
+                           "count":  1,
+                           "combo":  "Eldon 200 Class Desk Accessories, Smoke + Staple envelope"
+                       },
+                       {
+                           "profit":  -372.3,
+                           "count":  1,
+                           "combo":  "LG G2 + Xerox 1952"
+                       },
+                       {
+                           "profit":  104.49,
+                           "count":  1,
+                           "combo":  "Cisco SPA 502G IP Phone + Cisco SPA112 2 Port Phone Adapter + GE General Purpose, Extra Long Life, Showcase \u0026 Floodlight Incandescent Bulbs + Permanent Self-Adhesive File Folder Labels for Typewriters, 1 1/8 x 3 1/2, White + Wireless Extenders zBoost YX545 SOHO Signal Booster"
+                       }
+                   ],
+    "regionProducts":  {
+                           "South":  {
+                                         "Art":  4656,
+                                         "Appliances":  19525,
+                                         "Tables":  43916,
+                                         "Furnishings":  17307,
+                                         "Labels":  2353,
+                                         "Envelopes":  3346,
+                                         "Fasteners":  503,
+                                         "Binders":  37030,
+                                         "Phones":  58304,
+                                         "Storage":  35768,
+                                         "Accessories":  27277,
+                                         "Machines":  53891,
+                                         "Paper":  14151,
+                                         "Bookcases":  10899,
+                                         "Chairs":  45176,
+                                         "Copiers":  9300,
+                                         "Supplies":  8319
+                                     },
+                           "West":  {
+                                        "Art":  9320,
+                                        "Appliances":  30316,
+                                        "Tables":  85023,
+                                        "Furnishings":  32181,
+                                        "Labels":  5079,
+                                        "Envelopes":  4170,
+                                        "Fasteners":  6138,
+                                        "Binders":  55961,
+                                        "Phones":  98773,
+                                        "Storage":  70533,
+                                        "Accessories":  61114,
+                                        "Machines":  43131,
+                                        "Paper":  26723,
+                                        "Bookcases":  36341,
+                                        "Chairs":  107135,
+                                        "Copiers":  49749,
+                                        "Supplies":  18127
+                                    },
+                           "Central":  {
+                                           "Art":  5765,
+                                           "Appliances":  23582,
+                                           "Tables":  39155,
+                                           "Furnishings":  15284,
+                                           "Labels":  2451,
+                                           "Envelopes":  4637,
+                                           "Fasteners":  778,
+                                           "Binders":  58061,
+                                           "Phones":  72403,
+                                           "Storage":  45983,
+                                           "Accessories":  33956,
+                                           "Machines":  26797,
+                                           "Paper":  17492,
+                                           "Bookcases":  24157,
+                                           "Chairs":  85941,
+                                           "Copiers":  37260,
+                                           "Supplies":  9467
+                                       },
+                           "East":  {
+                                        "Art":  7918,
+                                        "Appliances":  34790,
+                                        "Tables":  39926,
+                                        "Furnishings":  30826,
+                                        "Labels":  2812,
+                                        "Envelopes":  4376,
+                                        "Fasteners":  1113,
+                                        "Binders":  56303,
+                                        "Phones":  102362,
+                                        "Storage":  72361,
+                                        "Accessories":  45033,
+                                        "Machines":  66106,
+                                        "Paper":  21175,
+                                        "Bookcases":  43964,
+                                        "Chairs":  97516,
+                                        "Copiers":  54437,
+                                        "Supplies":  10812
+                                    }
+                       },
+    "subCategories":  [
+                          "Accessories",
+                          "Appliances",
+                          "Art",
+                          "Binders",
+                          "Bookcases",
+                          "Chairs",
+                          "Copiers",
+                          "Envelopes",
+                          "Fasteners",
+                          "Furnishings",
+                          "Labels",
+                          "Machines",
+                          "Paper",
+                          "Phones",
+                          "Storage",
+                          "Supplies",
+                          "Tables"
+                      ],
+    "regions":  [
+                    "Central",
+                    "East",
+                    "South",
+                    "West"
+                ]
+}

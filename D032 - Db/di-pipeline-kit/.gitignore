@@ -1,0 +1,10 @@
+# 산출물은 각자 만든다
+runs/*/outputs/*
+runs/*/queries/*
+!runs/*/outputs/.gitkeep
+!runs/*/queries/.gitkeep
+
+# 시스템
+.DS_Store
+__pycache__/
+*.pyc

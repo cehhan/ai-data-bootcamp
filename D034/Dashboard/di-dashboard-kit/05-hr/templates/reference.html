@@ -1,0 +1,766 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=1300">
+<title>HR People Analytics OS</title>
+<link href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard/dist/web/static/pretendard.css" rel="stylesheet">
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+<style>
+*{margin:0;padding:0;box-sizing:border-box}
+svg,canvas{display:block}
+:root{
+  --bg:#F5F6F8;--card:#FFFFFF;--border:#E6E2E2;
+  --sidebar:#2B2B30;--grid:#ECECF0;
+  --t1:#2B2B30;--t2:#4A4A52;--t3:#6A6A73;--t4:#8A8A94;
+  --c1:#7E2124;--c2:#A83035;--c3:#C63B3F;--c4:#D9565A;--c5:#E66F72;
+  --coral:#F7585C;--navy:#31538F;--navy-l:#6E8CC4;
+  --green:#1B7F49;--red:#C0392B;--amber:#8A6100;
+  --green-bg:#E8F5EE;--red-bg:#FBEAE8;--amber-bg:#F6F0E2;--navy-bg:#EDF1F8;
+  --font:'Pretendard',-apple-system,sans-serif;--r:12px;
+}
+body{font-family:var(--font);background:var(--bg);color:var(--t1);display:flex;min-height:100vh;font-size:15px}
+
+/* SIDEBAR */
+.sidebar{width:202px;min-height:100vh;background:var(--sidebar);display:flex;flex-direction:column;flex-shrink:0}
+.sb-logo{padding:21px 18px 12px;border-bottom:1px solid rgba(255,255,255,.08)}
+.sb-ic{width:39px;height:36px;background:var(--c1);border-radius:7px;display:flex;align-items:center;justify-content:center;margin-bottom:8px}
+.sb-logo .brand{font-size:15px;font-weight:800;color:#fff}
+.sb-logo .sub{font-size:13px;color:rgba(255,255,255,.45);margin-top:1px}
+.sb-grp{font-size:11px;color:rgba(255,255,255,.3);text-transform:uppercase;letter-spacing:.8px;padding:13px 18px 4px}
+.sb-nav{flex:1;padding:6px 0}
+.sb-nav a{display:flex;align-items:center;gap:9px;padding:10px 18px;color:rgba(255,255,255,.55);text-decoration:none;font-size:14px;border-left:2px solid transparent;transition:all .15s}
+.sb-nav a:hover{background:rgba(255,255,255,.05)}
+.sb-nav a.active{border-left-color:var(--c1);background:rgba(87,180,151,.15);color:#fff;font-weight:600}
+.sb-footer{padding:16px 18px;border-top:1px solid rgba(255,255,255,.08);font-size:12px;color:rgba(255,255,255,.3);line-height:1.8}
+
+/* MAIN */
+.main{flex:1;display:flex;flex-direction:column;min-height:100vh;}
+.topbar{height:60px;display:flex;align-items:center;justify-content:space-between;padding:0 18px;border-bottom:1px solid var(--border);background:var(--card);flex-shrink:0}
+.tb-left{display:flex;align-items:center;gap:11px}
+.topbar h1{font-size:17px;font-weight:700}
+.tb-badge{background:rgba(87,180,151,.08);color:var(--c1);font-size:12px;font-weight:700;padding:3px 12px;border-radius:20px}
+.date-filter-wrap{display:flex;align-items:center;gap:11px;flex:1;justify-content:center}
+.date-chips{display:flex;gap:4px}
+.date-chip{padding:5px 12px;border-radius:5px;font-size:13px;font-weight:500;cursor:pointer;border:1px solid var(--border);background:var(--card);color:var(--t3);font-family:var(--font);transition:all .12s}
+.date-chip.active{background:var(--c2);color:#fff;border-color:var(--c2);font-weight:600}
+.date-lbl{font-size:12px;color:var(--t4);white-space:nowrap}
+.date-range{font-size:12px;color:var(--t3);background:var(--bg);padding:4px 10px;border-radius:5px;border:1px solid var(--border);white-space:nowrap}
+.btn-sm{padding:6px 16px;border-radius:6px;font-size:14px;font-weight:600;cursor:pointer;border:1px solid var(--border);background:var(--card);color:var(--t2);font-family:var(--font)}
+.btn-pri{background:var(--c1);color:#fff;border-color:var(--c1)}
+
+.content{padding:13px 18px;display:flex;flex-direction:column;gap:14px;overflow:visible;height:auto}
+
+/* KPI */
+.row1{display:grid;grid-template-columns:repeat(6,1fr);gap:11px;flex-shrink:0}
+.kpi{background:var(--card);border:1px solid var(--border);border-radius:var(--r);padding:13px 17px;box-shadow:0 1px 4px rgba(15,23,42,.04)}
+.kpi-lbl{font-size:11px;color:var(--t4);text-transform:uppercase;letter-spacing:.6px;margin-bottom:4px}
+.kpi-base{font-size:11px;color:var(--t4);font-weight:400;text-transform:none;letter-spacing:0;display:block;margin-bottom:2px}
+.kpi-val{font-size:23px;font-weight:800;color:var(--t1);line-height:1;letter-spacing:-.5px}
+.kpi-sub{display:flex;align-items:center;gap:5px;margin-top:4px;flex-wrap:wrap}
+.kpi-def{font-size:11px;color:var(--t4);margin-top:3px;line-height:1.4}
+.badge{display:inline-flex;align-items:center;padding:1.5px 6px;border-radius:4px;font-size:11px;font-weight:700;border:none}
+.bg{background:var(--green-bg);color:var(--green)}
+.br{background:var(--red-bg);color:var(--red)}
+.bn{background:#F5F6F8;color:#6A6A73}
+.bw{background:var(--amber-bg);color:var(--amber)}
+.kpi-spark{display:block;width:100%;height:31px;margin-top:5px}
+
+/* ROWS */
+.row2{display:grid;grid-template-columns:2fr 1fr 1fr;gap:14px;height:328px;flex-shrink:0}
+.row3{display:grid;grid-template-columns:1fr 1fr 1fr;gap:14px;height:305px;flex-shrink:0}
+.row4{display:grid;grid-template-columns:1fr 1.7fr;gap:14px;min-height:253px}
+
+.card{background:var(--card);border:1px solid var(--border);border-radius:var(--r);padding:16px 18px;display:flex;flex-direction:column;overflow:visible;box-shadow:0 2px 8px rgba(0,0,0,.06)}
+.card-hd{display:flex;align-items:flex-start;gap:11px;margin-bottom:9px;flex-shrink:0}
+.card-num{width:29px;height:26px;border-radius:6px;background:var(--c1);color:#fff;font-size:12px;font-weight:700;display:flex;align-items:center;justify-content:center;flex-shrink:0;margin-top:1px;white-space:nowrap}
+.card-title{font-size:15px;font-weight:700;color:var(--t1)}
+.card-sub{font-size:12px;color:var(--t3);margin-top:1px}
+.chart-summary{font-size:13px;color:var(--t2);background:#F5F6F8;padding:6px 10px;border-radius:5px;margin-bottom:7px;flex-shrink:0;line-height:1.5}
+.chart-summary b{color:var(--t1)}
+.chart-wrap{position:relative;flex:1;min-height:0;overflow:visible}
+.chart-wrap canvas{position:absolute;top:0;left:0;width:100%!important;height:100%!important}
+
+/* 부서별 이직률 (판정 기준 포함) */
+.dept-bar-list{display:flex;flex-direction:column;gap:9px;flex:1}
+.dept-bar-row{display:flex;align-items:center;gap:9px}
+.dept-lbl{font-size:13px;color:var(--t2);width:73px;flex-shrink:0;font-weight:600;white-space:nowrap}
+.dept-track{flex:1;height:17px;background:var(--bg);border-radius:4px;overflow:hidden;position:relative}
+.dept-fill{height:100%;border-radius:4px}
+.dept-val{font-size:13px;font-weight:700;width:44px;text-align:right;flex-shrink:0;white-space:nowrap}
+.dept-status{font-size:11px;font-weight:700;padding:1.5px 5px;border-radius:3px;flex-shrink:0}
+
+/* 인원 변동 워터폴 */
+.wf-simple{flex:1;display:flex;flex-direction:column;gap:8px;justify-content:center}
+.wf-row{display:flex;align-items:center;gap:11px}
+.wf-lbl{font-size:13px;color:var(--t2);width:94px;flex-shrink:0;white-space:nowrap}
+.wf-track{flex:1;height:12px;background:var(--bg);border-radius:3px;overflow:hidden}
+.wf-fill{height:100%;border-radius:3px}
+.wf-val{font-size:13px;font-weight:700;width:49px;text-align:right;flex-shrink:0;white-space:nowrap}
+.wf-total{background:var(--bg);border-radius:7px;padding:9px 13px;border:1px solid var(--border);text-align:center;flex-shrink:0}
+.wf-total-num{font-size:23px;font-weight:800;color:var(--t1);letter-spacing:-.4px}
+.wf-total-lbl{font-size:12px;color:var(--t3);margin-top:2px}
+
+/* 이직 위험도 분포 */
+.risk-dist{display:flex;flex-direction:column;gap:9px;flex:1}
+.rd-row{display:flex;align-items:center;gap:9px}
+.rd-lbl{font-size:13px;color:var(--t1);width:88px;flex-shrink:0;font-weight:600;white-space:nowrap}
+.rd-sub{font-size:11px;color:var(--t3);display:block}
+.rd-track{flex:1;height:19px;background:var(--bg);border-radius:4px;overflow:hidden}
+.rd-fill{height:100%;border-radius:4px}
+.rd-fill-txt{font-size:12px;font-weight:700;color:var(--t1);width:44px;text-align:right;flex-shrink:0;white-space:nowrap}
+.rd-pct{font-size:13px;font-weight:700;width:42px;text-align:right;flex-shrink:0;white-space:nowrap}
+
+/* AI 인사이트 */
+.ai-list{display:flex;flex-direction:column;gap:9px;flex:1;overflow:auto}
+.ai-item{border:1px solid var(--border);border-radius:8px;padding:12px 14px;background:var(--bg)}
+.ai-hd{display:flex;align-items:center;gap:8px;margin-bottom:6px}
+.ai-idx{width:26px;height:24px;border-radius:6px;background:var(--c1);color:#fff;font-size:12px;font-weight:700;display:flex;align-items:center;justify-content:center;flex-shrink:0;white-space:nowrap}
+.ai-title{font-size:14px;font-weight:700;color:var(--t1);flex:1}
+.ai-urgency{font-size:11px;font-weight:700;padding:3px 9px;border-radius:10px}
+.ai-meta{display:grid;grid-template-columns:1fr 1fr 1fr;gap:5px;margin-bottom:5px}
+.ai-cell{background:var(--card);border:1px solid var(--border);border-radius:5px;padding:5px 9px}
+.ai-cell-lbl{font-size:11px;color:var(--t4);text-transform:uppercase;letter-spacing:.3px;margin-bottom:1px}
+.ai-cell-val{font-size:13px;font-weight:600;color:var(--t1)}
+.ai-action{font-size:12px;color:var(--t2);border-top:1px solid var(--border);padding-top:5px;line-height:1.5}
+.ai-action b{color:var(--t1)}
+.ai-owner{font-size:11px;color:var(--t3);margin-top:3px}
+
+/* 퇴사위험 테이블 */
+.perf-table{width:100%;border-collapse:collapse;font-size:14px}
+.perf-table thead{position:sticky;top:0;z-index:2;background:var(--card)}
+.perf-table thead tr{border-bottom:2px solid var(--border)}
+.perf-table th{font-size:12px;color:var(--t3);text-transform:uppercase;letter-spacing:.4px;padding:0 8px 8px;text-align:right;font-weight:700;white-space:nowrap}
+.perf-table th:first-child,.perf-table th:nth-child(2){text-align:left}
+.perf-table tbody tr{border-bottom:1px solid #ECECF0;transition:background .15s;cursor:default}
+.perf-table tbody tr:hover{background:rgba(87,180,151,0.06)}
+.perf-table tbody tr.row-danger{background:#ECECF0;border-left:3px solid var(--red)}
+.perf-table tbody tr.row-warn{background:#FFFDF5;border-left:3px solid #8A6100}
+.perf-table td{padding:12px 10px;text-align:right;color:var(--t2);white-space:nowrap;vertical-align:middle}
+.perf-table td:first-child,.perf-table td:nth-child(2){text-align:left;color:var(--t1);font-weight:600}
+.perf-table tr:last-child td{border-bottom:none}
+.risk-badge{font-size:11px;font-weight:700;padding:2.5px 8px;border-radius:10px}
+.action-badge{font-size:11px;font-weight:700;padding:2.5px 8px;border-radius:10px;white-space:nowrap}
+.engage-bar{display:inline-block;height:5px;border-radius:2px;vertical-align:middle}
+
+/* ── STEP GUIDE ── */
+.step-guide{background:#fff;border:1px solid var(--border);border-radius:var(--r);padding:18px 21px;margin-top:2px;box-shadow:0 1px 4px rgba(15,23,42,.05);flex-shrink:0}
+.step-guide-hd{display:flex;align-items:center;gap:11px;margin-bottom:12px;padding-bottom:10px;border-bottom:1px solid var(--border)}
+.step-guide-title{font-size:15px;font-weight:800;color:var(--t1)}
+.step-guide-sub{font-size:12px;color:var(--t3);margin-top:1px}
+.step-guide-icon{width:36px;height:34px;border-radius:7px;background:var(--sidebar);display:flex;align-items:center;justify-content:center;flex-shrink:0}
+.step-guide-body{display:grid;grid-template-columns:1.4fr 1fr 1.6fr;gap:22px}
+.step-col-title{font-size:12px;font-weight:700;color:var(--t3);text-transform:uppercase;letter-spacing:.7px;margin-bottom:8px}
+.step-flow{display:flex;flex-direction:column;gap:7px}
+.step-flow-item{display:flex;align-items:flex-start;gap:9px}
+.step-fn{width:23px;height:22px;border-radius:4px;background:var(--sidebar);color:#fff;font-size:11px;font-weight:700;display:flex;align-items:center;justify-content:center;flex-shrink:0;margin-top:1px;white-space:nowrap}
+.step-arrow{width:23px;height:22px;display:flex;align-items:center;justify-content:center;color:var(--t4);font-size:13px;flex-shrink:0;white-space:nowrap}
+.step-ft{font-size:13px;color:var(--t2);line-height:1.4}
+.step-ft b{color:var(--t1);font-weight:700}
+.step-iact{display:flex;flex-direction:column;gap:7px}
+.step-iact-item{display:flex;align-items:flex-start;gap:8px;background:var(--bg);border-radius:6px;padding:8px 10px}
+.step-iact-ic{width:21px;height:19px;border-radius:3px;background:var(--c1);display:flex;align-items:center;justify-content:center;flex-shrink:0;margin-top:1px}
+.step-iact-txt{font-size:13px;color:var(--t2);line-height:1.4}
+.step-iact-txt b{color:var(--t1)}
+.step-q{display:flex;flex-direction:column;gap:7px}
+.step-q-item{border-left:2px solid var(--c1);padding:6px 10px;background:var(--bg);border-radius:0 6px 6px 0}
+.step-q-num{font-size:11px;color:var(--c1);font-weight:700;margin-bottom:2px;text-transform:uppercase;letter-spacing:.4px}
+.step-q-txt{font-size:13px;color:var(--t1);font-weight:600;line-height:1.4}
+.step-q-hint{font-size:12px;color:var(--t3);margin-top:2px;line-height:1.4}
+
+
+/* STEP LABEL */
+.step-label{display:flex;align-items:center;gap:14px;padding:4px 0;margin-bottom:2px}
+.step-num{font-size:14px;font-weight:800;color:var(--c1);background:rgba(87,180,151,0.12);padding:5px 13px;border-radius:20px;letter-spacing:.5px;white-space:nowrap}
+.step-title-lbl{font-size:16px;font-weight:700;color:var(--t1)}
+.step-line{flex:1;height:1px;background:var(--border)}
+</style>
+</head>
+<body>
+
+<!-- SIDEBAR -->
+<aside class="sidebar">
+  <div class="sb-logo">
+    <div class="sb-ic">
+      <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2.2"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>
+    </div>
+    <div class="brand">HR OS</div>
+    <div class="sub">People Analytics</div>
+  </div>
+  <nav class="sb-nav">
+    <div class="sb-grp">Overview</div>
+    <a href="#" class="active">
+      <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="2" y="3" width="20" height="14" rx="2"/></svg>People 현황
+    </a>
+    <a href="#">
+      <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 3v18h18"/></svg>채용 분석
+    </a>
+    <div class="sb-grp">Deep Dive</div>
+    <a href="#">
+      <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/></svg>이직 예측
+    </a>
+    <a href="#">
+      <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M22 12h-4l-3 9L9 3l-3 9H2"/></svg>몰입도 추이
+    </a>
+    <a href="#">
+      <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/></svg>성과 분포
+    </a>
+  </nav>
+  <div class="sb-footer">
+    기준: 2024.Q1<br>
+    자발적 이직률 기준<br>
+    인원 계정 단위
+  </div>
+</aside>
+
+<!-- MAIN -->
+<div class="main">
+  <div class="topbar">
+    <div class="tb-left">
+      <h1>HR People Analytics 대시보드</h1>
+      <span class="tb-badge">자발적 이직률 · 채용 퍼널 · 이탈 조기 탐지</span>
+    </div>
+    <div class="date-filter-wrap">
+      <span class="date-lbl">기준</span>
+      <div class="date-chips">
+        <button class="date-chip" onclick="setDate('month',this)">이번 달</button>
+        <button class="date-chip active" onclick="setDate('q',this)">이번 분기</button>
+        <button class="date-chip" onclick="setDate('half',this)">반기</button>
+        <button class="date-chip" onclick="setDate('year',this)">연간</button>
+      </div>
+      <span class="date-range" id="dateRange">2024.01.01 – 03.31 · Q1</span>
+    </div>
+    <div style="display:flex;gap:6px">
+      <button class="btn-sm">리포트 내보내기</button>
+      <button class="btn-sm btn-pri">위험 알림 설정</button>
+    </div>
+  </div>
+
+  <div class="content">
+
+    <div class="step-label"><span class="step-num">STEP 1</span><span class="step-title-lbl">핵심 지표 한눈에 보기 — 지금 어디가 위험한가?</span><div class="step-line"></div></div>
+    <!-- ⚠ SAMPLE — 아래 수치는 디자인 예시. data/ 실제 계산값으로 교체할 것 -->
+    <!-- ROW 1: KPI (정의 포함) -->
+    <div class="row1">
+      <div class="kpi">
+        <div class="kpi-lbl">총 재직 인원</div>
+        <span class="kpi-base">· Q1 기준 · 정규직 기준</span>
+        <div class="kpi-val">1,247명</div>
+        <div class="kpi-sub"><span class="badge bg">▲ +23명 전분기</span></div>
+        <canvas class="kpi-spark" id="spark0"></canvas>
+        <div class="kpi-def">Active 재직자 · 인턴/계약직 제외</div>
+      </div>
+      <div class="kpi">
+        <div class="kpi-lbl">신규 입사자</div>
+        <span class="kpi-base">· Q1 채용 완료 기준</span>
+        <div class="kpi-val">47명</div>
+        <div class="kpi-sub"><span class="badge bg">▲ +8명 전분기</span></div>
+        <canvas class="kpi-spark" id="spark1"></canvas>
+        <div class="kpi-def">채용 완료 후 온보딩 입사자</div>
+      </div>
+      <div class="kpi">
+        <div class="kpi-lbl">자발적 퇴사자</div>
+        <span class="kpi-base">· Q1 · 비자발적 제외</span>
+        <div class="kpi-val">23명</div>
+        <div class="kpi-sub"><span class="badge br">▲ +7명 전분기</span></div>
+        <canvas class="kpi-spark" id="spark2"></canvas>
+        <div class="kpi-def">자발적 이직만 · 권고사직 별도</div>
+      </div>
+      <div class="kpi">
+        <div class="kpi-lbl">고위험 이탈 인원</div>
+        <span class="kpi-base">· AI 예측 · 즉시 개입 필요</span>
+        <div class="kpi-val" style="color:#C0392B">12명</div>
+        <div class="kpi-sub"><span class="badge br">이탈 확률 > 70%</span></div>
+        <canvas class="kpi-spark" id="spark3"></canvas>
+        <div class="kpi-def">퇴사 예정 아님 · 위험 예측군</div>
+      </div>
+      <div class="kpi">
+        <div class="kpi-lbl">평균 채용 소요일</div>
+        <span class="kpi-base">· JD 오픈 → 입사일 기준</span>
+        <div class="kpi-val">28일</div>
+        <div class="kpi-sub"><span class="badge bg">▼ -3일 단축</span></div>
+        <canvas class="kpi-spark" id="spark4"></canvas>
+        <div class="kpi-def">JD 오픈~최종 입사 소요일 평균</div>
+      </div>
+      <div class="kpi">
+        <div class="kpi-lbl">자발적 이직률</div>
+        <span class="kpi-base">· 연환산 · 업계 평균 15%</span>
+        <div class="kpi-val" style="color:#8A6100">12.4%</div>
+        <div class="kpi-sub"><span class="badge bw">업계 15% 하회 중</span></div>
+        <canvas class="kpi-spark" id="spark5"></canvas>
+        <div class="kpi-def">자발적 퇴사/평균 재직자 · 연환산</div>
+      </div>
+    </div>
+
+    <div class="step-label"><span class="step-num">STEP 2</span><span class="step-title-lbl">인원 변동과 위험 등급 파악 — 채용·이탈 흐름은 어떻게 되는가?</span><div class="step-line"></div></div>
+    <!-- ROW 2: 채용 소요일 추이 + 인원 변동 + 이직위험도 분포 -->
+    <div class="row2">
+
+      <!-- 부서별 채용 소요일 추이 (라벨 직접 표기) -->
+      <div class="card">
+        <div class="card-hd" style="align-items:center">
+          <div class="card-num">1</div>
+          <div style="flex:1">
+            <div class="card-title">부서별 채용 소요일 추이</div>
+            <div class="card-sub">높을수록 채용 비효율 · 목표선 28일 · 급증 부서 강조</div>
+          </div>
+          <div id="trendFilters" style="display:flex;gap:4px;flex-wrap:wrap"></div>
+        </div>
+        <div class="chart-summary">
+          <b>개발팀 28일 목표 달성</b> — 전분기 42일 대비 33% 단축. 영업팀은 여전히 19일로 최단 · 반면 PM팀 29일로 목표 초과 중.
+        </div>
+        <div class="chart-wrap"><canvas id="trendChart"></canvas></div>
+      </div>
+
+      <!-- 인원 변동 현황 -->
+      <div class="card">
+        <div class="card-hd">
+          <div class="card-num">2</div>
+          <div>
+            <div class="card-title">Q1 인원 변동</div>
+            <div class="card-sub">자발적·비자발적 퇴사 분리 · 순증감 표시</div>
+          </div>
+        </div>
+        <div class="wf-simple" style="gap:0;margin-top:-4px">
+          <!-- 헤더: 수치 + 스파크라인 — 카드 상단에 바짝 -->
+          <div style="display:flex;align-items:flex-start;justify-content:space-between;margin-bottom:6px;flex-shrink:0">
+            <div>
+              <div style="font-size:12px;color:var(--t4);margin-bottom:2px;text-transform:uppercase;letter-spacing:.5px">Q1 말 재직 인원 (정규직)</div>
+              <div style="font-size:29px;font-weight:800;color:var(--t1);letter-spacing:-1px;line-height:1.1">1,247명</div>
+              <div style="margin-top:4px;display:flex;align-items:center;gap:5px">
+                <span style="font-size:13px;font-weight:700;color:#1B7F49">▲ +30명</span>
+                <span style="font-size:12px;color:var(--t4)">전분기 대비 +2.5%</span>
+              </div>
+            </div>
+            <canvas id="headcountSpark" width="90" height="44" style="flex-shrink:0;margin-top:2px"></canvas>
+          </div>
+          <!-- 구분선 -->
+          <div style="border-top:1px solid var(--border);margin-bottom:8px;flex-shrink:0"></div>
+          <!-- 변동 내역 -->
+          <div class="wf-row">
+            <div class="wf-lbl">신규 입사</div>
+            <div class="wf-track"><div class="wf-fill" style="width:82%;background:#1B7F49"></div></div>
+            <div class="wf-val" style="color:#1B7F49">+47명</div>
+          </div>
+          <div class="wf-row">
+            <div class="wf-lbl" style="color:#6A6A73">내부 이동</div>
+            <div class="wf-track"><div class="wf-fill" style="width:28%;background:#8A8A94"></div></div>
+            <div class="wf-val" style="color:#6A6A73">+13명</div>
+          </div>
+          <div class="wf-row">
+            <div class="wf-lbl" style="color:#C0392B">자발적 퇴사</div>
+            <div class="wf-track" style="background:#fdf0f2"><div class="wf-fill" style="width:40%;background:#C0392B"></div></div>
+            <div class="wf-val" style="color:#C0392B">-23명</div>
+          </div>
+          <div class="wf-row">
+            <div class="wf-lbl" style="color:#8A8A94">비자발적</div>
+            <div class="wf-track"><div class="wf-fill" style="width:13%;background:#8A8A94"></div></div>
+            <div class="wf-val" style="color:#8A8A94">-7명</div>
+          </div>
+        </div>
+      </div>
+
+      <!-- 이직 위험도 등급 분포 -->
+      <div class="card">
+        <div class="card-hd">
+          <div class="card-num">3</div>
+          <div>
+            <div class="card-title">이직 위험도 등급 분포</div>
+            <div class="card-sub">AI 예측 · 높을수록 이탈 위험 · 즉시 개입 기준 70%</div>
+          </div>
+        </div>
+        <div class="risk-dist">
+          <div class="rd-row">
+            <div class="rd-lbl">매우 위험<span class="rd-sub">70%+ · 12명</span></div>
+            <div class="rd-track"><div class="rd-fill" style="width:10%;background:#C0392B"></div></div><span class="rd-fill-txt">10%</span>
+            <div class="rd-pct" style="color:#C0392B;font-weight:700">12명</div>
+          </div>
+          <div class="rd-row">
+            <div class="rd-lbl">위험<span class="rd-sub">50~70% · 38명</span></div>
+            <div class="rd-track"><div class="rd-fill" style="width:31%;background:#8A6100"></div></div><span class="rd-fill-txt">31%</span>
+            <div class="rd-pct" style="color:#8A6100">38명</div>
+          </div>
+          <div class="rd-row">
+            <div class="rd-lbl">주의<span class="rd-sub">30~50% · 92명</span></div>
+            <div class="rd-track"><div class="rd-fill" style="width:74%;background:#8A8A94"></div></div><span class="rd-fill-txt">74%</span>
+            <div class="rd-pct" style="color:#6A6A73">92명</div>
+          </div>
+          <div class="rd-row">
+            <div class="rd-lbl">안정<span class="rd-sub">< 30% · 1,105명</span></div>
+            <div class="rd-track"><div class="rd-fill" style="width:89%;background:#1B7F49"></div></div><span class="rd-fill-txt">89%</span>
+            <div class="rd-pct" style="color:#1B7F49">1,105명</div>
+          </div>
+        </div>
+        <div style="font-size:12px;color:var(--t3);padding:8px 10px;background:var(--bg);border-radius:6px;margin-top:6px;flex-shrink:0">
+          매우 위험 12명 — 이번 주 내 매니저 1:1 필수. 영업팀 5명 집중.
+        </div>
+      </div>
+    </div>
+
+    <div class="step-label"><span class="step-num">STEP 3</span><span class="step-title-lbl">부서·채용·성과 드릴다운 — 어느 부서가 문제이고 왜인가?</span><div class="step-line"></div></div>
+    <!-- ROW 3: 부서별 자발적 이직률 + 채용 퍼널 + 성과 등급 분포 -->
+    <div class="row3">
+
+      <!-- ⚠ SAMPLE — 아래 수치는 디자인 예시. data/ 실제 계산값으로 교체할 것 -->
+      <!-- 부서별 자발적 이직률 (판정 기준 포함) -->
+      <div class="card">
+        <div class="card-hd">
+          <div class="card-num">4</div>
+          <div>
+            <div class="card-title">부서별 자발적 이직률</div>
+            <div class="card-sub">높을수록 위험 · 업계 평균 15% · 목표 < 12%</div>
+          </div>
+        </div>
+        <div class="dept-bar-list">
+          <div class="dept-bar-row">
+            <div class="dept-lbl">영업</div>
+            <div class="dept-track"><div class="dept-fill" style="width:92%;background:#C0392B;border-radius:4px"></div></div>
+            <div class="dept-val" style="color:#C0392B;font-weight:700">22.3%</div>
+          </div>
+          <div class="dept-bar-row">
+            <div class="dept-lbl">마케팅</div>
+            <div class="dept-track"><div class="dept-fill" style="width:62%;background:#8A6100;border-radius:4px"></div></div>
+            <div class="dept-val" style="color:#8A6100;font-weight:700">14.1%</div>
+          </div>
+          <div class="dept-bar-row">
+            <div class="dept-lbl">PM</div>
+            <div class="dept-track"><div class="dept-fill" style="width:41%;background:#8A8A94;border-radius:4px"></div></div>
+            <div class="dept-val" style="color:#6A6A73">9.8%</div>
+          </div>
+          <div class="dept-bar-row">
+            <div class="dept-lbl">디자인</div>
+            <div class="dept-track"><div class="dept-fill" style="width:43%;background:#8A8A94;border-radius:4px"></div></div>
+            <div class="dept-val" style="color:#6A6A73">10.5%</div>
+          </div>
+          <div class="dept-bar-row">
+            <div class="dept-lbl">개발</div>
+            <div class="dept-track"><div class="dept-fill" style="width:34%;background:#8A8A94;border-radius:4px"></div></div>
+            <div class="dept-val" style="color:#6A6A73">8.2%</div>
+          </div>
+          <div style="margin-top:8px;padding-top:8px;border-top:1px solid var(--border);display:flex;gap:16px;flex-shrink:0">
+            <span style="font-size:12px;color:#6A6A73;display:flex;align-items:center;gap:4px"><span style="display:inline-block;width:8px;height:8px;border-radius:2px;background:#C0392B"></span>위험 > 15%</span>
+            <span style="font-size:12px;color:#6A6A73;display:flex;align-items:center;gap:4px"><span style="display:inline-block;width:8px;height:8px;border-radius:2px;background:#8A6100"></span>주의 12~15%</span>
+            <span style="font-size:12px;color:#6A6A73;display:flex;align-items:center;gap:4px"><span style="display:inline-block;width:8px;height:8px;border-radius:2px;background:#8A8A94"></span>정상 < 12%</span>
+          </div>
+        </div>
+        <div style="font-size:12px;color:var(--t3);padding:6px 9px;background:var(--bg);border-radius:5px;margin-top:5px;flex-shrink:0;">
+          영업팀 22.3% — 업계 평균(15%) 대비 <b style="color:#C0392B">+7.3%p</b> 초과. 보상 구조 검토 시급.
+        </div>
+      </div>
+
+      <!-- ⚠ SAMPLE — 아래 수치는 디자인 예시. data/ 실제 계산값으로 교체할 것 -->
+      <!-- 채용 퍼널 -->
+      <div class="card">
+        <div class="card-hd">
+          <div class="card-num">5</div>
+          <div>
+            <div class="card-title">Q1 채용 퍼널</div>
+            <div class="card-sub">JD 오픈 → 입사 단계별 전환율 · 이탈 구간 강조</div>
+          </div>
+        </div>
+        <div style="flex:1;display:flex;flex-direction:column;gap:8px;justify-content:center">
+          <div style="display:flex;align-items:center;gap:8px"><span style="font-size:13px;color:var(--t3);font-weight:600;width:83px;flex-shrink:0;white-space:nowrap">지원</span><div style="flex:1;height:24px;background:#ECECF0;border-radius:4px;overflow:hidden"><div style="width:100%;height:100%;background:#333;border-radius:4px"></div></div><span style="font-size:12px;font-weight:600;color:var(--t1);width:58px;text-align:right;flex-shrink:0;white-space:nowrap">1,247명</span><span style="font-size:12px;color:var(--t3);font-weight:600;width:44px;text-align:right;flex-shrink:0;white-space:nowrap">100%</span></div>
+          <div style="display:flex;align-items:center;gap:8px"><span style="font-size:13px;color:var(--t3);font-weight:600;width:83px;flex-shrink:0;white-space:nowrap">서류</span><div style="flex:1;height:24px;background:#ECECF0;border-radius:4px;overflow:hidden"><div style="width:25%;height:100%;background:#4A4A52;border-radius:4px"></div></div><span style="font-size:12px;font-weight:600;color:var(--t1);width:58px;text-align:right;flex-shrink:0;white-space:nowrap">312명</span><span style="font-size:12px;color:var(--t3);font-weight:600;width:44px;text-align:right;flex-shrink:0;white-space:nowrap">25%</span></div>
+          <div style="display:flex;align-items:center;gap:8px"><span style="font-size:13px;color:var(--t3);font-weight:600;width:83px;flex-shrink:0;white-space:nowrap">1차 면접</span><div style="flex:1;height:24px;background:#ECECF0;border-radius:4px;overflow:hidden"><div style="width:7%;height:100%;background:#777;border-radius:4px"></div></div><span style="font-size:12px;font-weight:600;color:var(--t1);width:58px;text-align:right;flex-shrink:0;white-space:nowrap">89명</span><span style="font-size:12px;color:var(--t3);font-weight:600;width:44px;text-align:right;flex-shrink:0;white-space:nowrap">7%</span></div>
+          <div style="display:flex;align-items:center;gap:8px"><span style="font-size:13px;color:var(--t3);font-weight:600;width:83px;flex-shrink:0;white-space:nowrap">최종 면접</span><div style="flex:1;height:24px;background:#ECECF0;border-radius:4px;overflow:hidden"><div style="width:4%;height:100%;background:#999;border-radius:4px"></div></div><span style="font-size:12px;font-weight:600;color:var(--t1);width:58px;text-align:right;flex-shrink:0;white-space:nowrap">52명</span><span style="font-size:12px;color:var(--t3);font-weight:600;width:44px;text-align:right;flex-shrink:0;white-space:nowrap">4%</span></div>
+          <div style="display:flex;align-items:center;gap:8px"><span style="font-size:13px;color:#1B7F49;font-weight:700;width:83px;flex-shrink:0;white-space:nowrap">입사 완료</span><div style="flex:1;height:24px;background:#ECECF0;border-radius:4px;overflow:hidden;border:1px solid #1B7F49"><div style="width:4%;height:100%;background:#1B7F49;border-radius:4px"></div></div><span style="font-size:12px;font-weight:700;color:var(--t1);width:58px;text-align:right;flex-shrink:0;white-space:nowrap">47명</span><span style="font-size:12px;color:#1B7F49;font-weight:700;width:44px;text-align:right;flex-shrink:0;white-space:nowrap">3.8%</span></div>
+        </div>
+        <div style="font-size:12px;color:var(--t3);padding:6px 9px;background:var(--bg);border-radius:5px;margin-top:5px;flex-shrink:0;border:1px solid var(--border)">
+          서류→면접 이탈 <b style="color:var(--t1)">64%</b> — JD 품질 및 지원자 사전 필터링 개선 필요
+        </div>
+      </div>
+
+      <!-- 성과 등급 분포 (명확한 정의 포함) -->
+      <div class="card">
+        <div class="card-hd">
+          <div class="card-num">6</div>
+          <div>
+            <div class="card-title">성과 평가 등급 분포</div>
+            <div class="card-sub">5점 척도 · 정규분포 비교 · Q1 연봉 평가 기준</div>
+          </div>
+        </div>
+        <div class="chart-wrap"><canvas id="perfChart"></canvas></div>
+        <div style="font-size:12px;color:var(--t3);padding:6px 9px;background:var(--bg);border-radius:5px;margin-top:5px;flex-shrink:0">
+          매우우수(5) 비율 <b style="color:var(--c1)">18%</b> — 전분기 14% 대비 증가. 개선필요(2) 14%는 PIP 대상 검토 필요.
+        </div>
+      </div>
+    </div>
+
+    <div class="step-label"><span class="step-num">STEP 4</span><span class="step-title-lbl">AI 알림 + 개인별 탐지 — 즉시 개입할 사람은 누구인가?</span><div class="step-line"></div></div>
+    <!-- ROW 4: AI 인사이트 + 이탈 위험 테이블 -->
+    <div class="row4">
+
+      <!-- AI 인사이트 (근거+영향+담당+긴급도) -->
+      <div class="card">
+        <div class="card-hd">
+          <div class="card-num">7</div>
+          <div>
+            <div class="card-title">AI People 알림 & 액션</div>
+            <div class="card-sub">영향 인원 · 긴급도 · 담당 부서 · 권장 액션 포함</div>
+          </div>
+        </div>
+        <div class="ai-list" id="aiList"></div>
+      </div>
+
+      <!-- 이탈 위험 인원 테이블 -->
+      <div class="card" style="overflow:auto">
+        <div class="card-hd" style="flex-shrink:0">
+          <div class="card-num">8</div>
+          <div>
+            <div class="card-title">이탈 위험 인원 조기 탐지</div>
+            <div class="card-sub">근속·성과·몰입도·마지막 1:1 기반 AI 예측 · 위험 행 하이라이트 · 자발적 이탈 예측만</div>
+          </div>
+        </div>
+        <div style="overflow:auto;flex:1">
+          <table class="perf-table" id="riskTable"></table>
+        </div>
+      </div>
+    </div>
+
+
+  </div>
+</div>
+
+<script>
+/* ══════════════════════════════════════════════════════════════════
+   ⚠ SAMPLE DATA — 아래 데이터 블록의 수치는 전부 "디자인용 예시"다.
+   /build-dashboard 실행 시 data/ 의 실제 계산값으로 **전량 교체**한다.
+   · 교체 대상 : depts · aiItems · riskData
+   · 유지 대상 : dRanges · months · directLabelPlugin · perfLabelPlugin · drawSparkline
+   · 필드명·배열 길이·JS 로직은 그대로 두고 **값만** 바꾼다.
+   · Math.random() 등으로 데이터를 생성하지 않는다.
+   ══════════════════════════════════════════════════════════════════ */
+Chart.defaults.font.family="'Pretendard',-apple-system,sans-serif";
+const c1="#1B7F49",c2="#2B2B30",c3="#31538F",c4="#8A6100",c5="#8A8A94";
+
+// 날짜 필터
+const dRanges={"month":"2024.03.01 – 03.31","q":"2024.01.01 – 03.31 · Q1","half":"2024.01.01 – 06.30","year":"2023.04.01 – 2024.03.31"};
+window.setDate=function(k,btn){
+  document.querySelectorAll(".date-chip").forEach(b=>b.classList.remove("active"));
+  btn.classList.add("active");
+  document.getElementById("dateRange").textContent=dRanges[k];
+};
+
+// KPI 스파크라인
+function drawSparkline(id,data,color){
+  const canvas=document.getElementById(id);if(!canvas)return;
+  const dpr=window.devicePixelRatio||1;
+  const W=canvas.offsetWidth||160,H=26;
+  canvas.width=W*dpr;canvas.height=H*dpr;
+  canvas.style.width=W+"px";canvas.style.height=H+"px";
+  const ctx=canvas.getContext("2d");ctx.scale(dpr,dpr);
+  const mn=Math.min(...data)*0.97,mx=Math.max(...data)*1.03,rng=mx-mn||1;
+  const pts=data.map((v,i)=>({x:2+i/(data.length-1)*(W-4),y:4+(H-8)*(1-(v-mn)/rng)}));
+  const grad=ctx.createLinearGradient(0,0,0,H);
+  grad.addColorStop(0,color+"40");grad.addColorStop(1,color+"00");
+  ctx.beginPath();pts.forEach((p,i)=>i===0?ctx.moveTo(p.x,p.y):ctx.lineTo(p.x,p.y));
+  ctx.lineTo(pts[pts.length-1].x,H);ctx.lineTo(pts[0].x,H);ctx.closePath();
+  ctx.fillStyle=grad;ctx.fill();
+  ctx.beginPath();pts.forEach((p,i)=>i===0?ctx.moveTo(p.x,p.y):ctx.lineTo(p.x,p.y));
+  ctx.strokeStyle=color;ctx.lineWidth=1.8;ctx.lineJoin="round";ctx.stroke();
+  const last=pts[pts.length-1];
+  ctx.beginPath();ctx.arc(last.x,last.y,2.5,0,Math.PI*2);ctx.fillStyle=color;ctx.fill();
+}
+window.addEventListener("load",()=>{
+
+// Q1 인원 변동 트렌드 스파크라인
+(function(){
+  const canvas = document.getElementById("headcountSpark");
+  if(!canvas) return;
+  const dpr = window.devicePixelRatio||1;
+  const W=100, H=44;
+  canvas.width=W*dpr; canvas.height=H*dpr;
+  canvas.style.width=W+"px"; canvas.style.height=H+"px";
+  const ctx=canvas.getContext("2d"); ctx.scale(dpr,dpr);
+  const data=[1170,1185,1195,1208,1218,1232,1247];
+  const mn=Math.min(...data)*0.998, mx=Math.max(...data)*1.002, rng=mx-mn;
+  const pts=data.map((v,i)=>({x:4+i/(data.length-1)*(W-8), y:4+(H-8)*(1-(v-mn)/rng)}));
+  const grad=ctx.createLinearGradient(0,0,0,H);
+  grad.addColorStop(0,"rgba(53,201,149,0.25)");
+  grad.addColorStop(1,"rgba(53,201,149,0)");
+  ctx.beginPath();
+  pts.forEach((p,i)=>i===0?ctx.moveTo(p.x,p.y):ctx.lineTo(p.x,p.y));
+  ctx.lineTo(pts[pts.length-1].x,H); ctx.lineTo(pts[0].x,H); ctx.closePath();
+  ctx.fillStyle=grad; ctx.fill();
+  ctx.beginPath();
+  pts.forEach((p,i)=>i===0?ctx.moveTo(p.x,p.y):ctx.lineTo(p.x,p.y));
+  ctx.strokeStyle="#1B7F49"; ctx.lineWidth=1.8; ctx.lineJoin="round"; ctx.stroke();
+  const last=pts[pts.length-1];
+  ctx.beginPath(); ctx.arc(last.x,last.y,3,0,Math.PI*2);
+  ctx.fillStyle="#1B7F49"; ctx.fill();
+})();
+
+  /* ⚠ SAMPLE — 스파크라인 배열: 실제 주차별 계열로 교체. 난수 생성 금지 */
+  drawSparkline("spark0",[1200,1210,1218,1224,1232,1240,1247],"#C63B3F");
+  drawSparkline("spark1",[28,32,35,38,41,44,47],"#1B7F49");
+  drawSparkline("spark2",[10,12,14,15,17,20,23],"#C0392B");
+  drawSparkline("spark3",[6,7,8,9,10,11,12],"#C0392B");
+  drawSparkline("spark4",[38,36,34,32,31,29,28],"#1B7F49");
+  drawSparkline("spark5",[11.2,11.4,11.6,11.8,12.0,12.2,12.4],"#8A6100");
+});
+
+// 채용 소요일 추이
+const months=["10월","11월","12월","1월","2월","3월"];
+/* ⚠ SAMPLE — 실제 계산값으로 교체 */
+const depts=[
+  {label:"개발",color:"#222",data:[42,38,35,32,30,28]},
+  {label:"마케팅",color:"#4A4A52",data:[28,26,25,24,23,22]},
+  {label:"영업",color:"#6A6A73",data:[18,20,19,21,20,19]},
+  {label:"디자인",color:"#8A8A94",data:[32,30,28,27,26,25]},
+  {label:"PM",color:"#8A8A94",data:[35,33,31,30,29,29]},
+];
+const trendCtx=document.getElementById("trendChart").getContext("2d");
+const trendChart=new Chart(trendCtx,{
+  type:"line",
+  data:{labels:months,datasets:[
+    ...depts.map(d=>({label:d.label,data:d.data,borderColor:d.color,backgroundColor:"transparent",borderWidth:d.label==="개발"?2.5:1.5,pointRadius:d.label==="개발"?4:2,tension:.3})),
+    {label:"목표(28일)",data:[28,28,28,28,28,28],borderColor:"#C0392B",borderWidth:1,borderDash:[4,3],pointRadius:0}
+  ]},
+  options:{
+    responsive:true,maintainAspectRatio:false,clip:false,
+    layout:{padding:{right:55,top:5,left:14}},
+    plugins:{
+      legend:{display:false},
+      tooltip:{backgroundColor:"#2B2B30",mode:"index",intersect:false,callbacks:{label:c=>c.dataset.label+": "+c.raw+"일"}}
+    },
+    scales:{
+      x:{grid:{color:"#ECECF0"},ticks:{font:{size:12}}},
+      y:{grid:{color:"#ECECF0"},ticks:{font:{size:12},callback:v=>v+"일"},min:10,max:50,
+        title:{display:true,text:"채용 소요일 (높을수록 비효율)",font:{size:12},color:"#8A8A94"}}
+    }
+  }
+});
+// 마지막 점 라벨 (직접 표기)
+const directLabelPlugin={
+  id:"dLabel",
+  afterDatasetsDraw(chart){
+    const{ctx,data,scales:{x,y},chartArea}=chart;
+    data.datasets.forEach((ds,i)=>{
+      if(i>=depts.length)return;
+      const lastIdx=ds.data.length-1;
+      const lastVal=ds.data[lastIdx];
+      if(lastVal===null)return;
+      const meta=chart.getDatasetMeta(i);
+      const pt=meta.data[lastIdx];
+      if(!pt)return;
+      ctx.save();ctx.font="bold 12px 'Pretendard'";ctx.fillStyle=depts[i].color;
+      ctx.textAlign="left";ctx.fillText(depts[i].label+" "+lastVal+"일",pt.x+7,pt.y+3);
+      ctx.restore();
+    });
+  }
+};
+trendChart.options.plugins.dLabel=true;
+trendChart.config.plugins=[directLabelPlugin];
+trendChart.update();
+
+// 트렌드 필터
+const filtersWrap=document.getElementById("trendFilters");
+depts.forEach((g,i)=>{
+  const btn=document.createElement("button");
+  btn.style.cssText=`padding:3px 10px;border-radius:4px;font-size:12px;font-weight:600;cursor:pointer;border:1px solid ${g.color};background:${g.color};color:#fff;font-family:'Pretendard'`;
+  btn.textContent=g.label;
+  btn.addEventListener("click",()=>{
+    const ds=trendChart.data.datasets[i];
+    ds.hidden=!ds.hidden;btn.style.opacity=ds.hidden?"0.3":"1";trendChart.update();
+  });
+  filtersWrap.appendChild(btn);
+});
+
+// 성과 등급 분포
+const perfLabelPlugin={id:"pL",afterDatasetsDraw(chart){
+  const{ctx,data}=chart;
+  chart.getDatasetMeta(0).data.forEach((bar,i)=>{
+    const v=data.datasets[0].data[i];
+    ctx.save();ctx.font="bold 13px 'Pretendard'";ctx.fillStyle=c2;
+    ctx.textAlign="center";ctx.fillText(v+"%",bar.x,bar.y-5);ctx.restore();
+  });
+}};
+new Chart(document.getElementById("perfChart").getContext("2d"),{
+  type:"bar",
+  data:{
+    labels:["매우우수(5)","우수(4)","보통(3)","개선필요(2)","부진(1)"],
+    datasets:[{
+      label:"직원 비중(%)",
+      data:[18,34,28,14,6],
+      backgroundColor:["#1B7F49","#1B7F49","#8A8A94","#8A6100","#C63B3F"],
+      borderRadius:5,barThickness:36
+    }]
+  },
+  plugins:[perfLabelPlugin],
+  options:{
+    responsive:true,maintainAspectRatio:false,clip:false,
+    layout:{padding:{top:18}},
+    plugins:{legend:{display:false},tooltip:{backgroundColor:"#2B2B30",callbacks:{label:c=>c.raw+"%"}}},
+    scales:{
+      x:{grid:{display:false},ticks:{font:{size:12}}},
+      y:{grid:{color:"#ECECF0"},ticks:{font:{size:12},callback:v=>v+"%"},max:42,
+        title:{display:true,text:"직원 비중 (%)",font:{size:12},color:"#8A8A94"}}
+    }
+  }
+});
+
+// AI 인사이트
+/* ⚠ SAMPLE — 실제 계산값으로 교체 */
+const aiItems=[
+  {idx:"01",title:"영업팀 이직률 22.3% — 즉시 보상 구조 검토",urgency:"긴급",ub:"#FBEAE8",ut:"#C0392B",
+   cells:[{l:"영향 인원",v:"영업팀 68명"},{l:"이직률",v:"22.3%"},{l:"업계 대비",v:"+7.3%p"},{l:"담당",v:"CHRO/영업본부장"},{l:"기한",v:"2주 이내"},{l:"비용",v:"채용비 ₩4.2M/인"}],
+   action:"<b>권장:</b> 영업팀 퇴사 면담 데이터 분석 → 보상 불만 vs 상사 갈등 vs 커리어 한계 원인 분리. OTE 구조 재검토 우선. 고위험군 5명 즉시 1:1 면담.",
+   owner:"담당: 영업 HRBP · 영업본부장 공동"},
+  {idx:"02",title:"고위험 이탈 예측 12명 — 이번 주 내 개입",urgency:"긴급",ub:"#FBEAE8",ut:"#C0392B",
+   cells:[{l:"이탈 확률",v:"> 70%"},{l:"예상 손실",v:"₩50M+"},{l:"영업팀",v:"5명 집중"},{l:"담당",v:"각 팀 매니저"},{l:"기한",v:"이번 주"},{l:"마지막 1:1",v:"62일+ 미진행"}],
+   action:"<b>권장:</b> 매니저에게 알림 발송 → 이번 주 내 1:1 일정 수립 의무화. 업셀/리텐션 인센티브보다 경력 성장 경로 제시 우선.",
+   owner:"담당: 각 팀 HR BP · 해당 매니저"},
+  {idx:"03",title:"개발팀 채용 소요일 28일 달성 — 프로세스 전파",urgency:"참고",ub:"#F5F6F8",ut:"#6A6A73",
+   cells:[{l:"소요일",v:"28일 (목표)"},{l:"전분기",v:"42일"},{l:"개선폭",v:"-14일 (-33%)"},{l:"담당",v:"채용팀"},{l:"효과",v:"조기 채용 완료"},{l:"전파 대상",v:"PM팀 (29일)"}],
+   action:"<b>권장:</b> 개발팀 구조화 면접 도입 프로세스를 PM팀에 먼저 적용. 레퍼럴 채용 인센티브 확대 검토.",
+   owner:"담당: 채용팀 · PM팀 HRBP"},
+];
+const al=document.getElementById("aiList");
+aiItems.forEach(item=>{
+  const div=document.createElement("div");div.className="ai-item";
+  div.innerHTML=`<div class="ai-hd">
+    <div class="ai-idx">${item.idx}</div>
+    <div class="ai-title">${item.title}</div>
+    <span class="ai-urgency" style="background:${item.ub};color:${item.ut}">${item.urgency}</span>
+  </div>
+  <div class="ai-meta">${item.cells.map(c=>`<div class="ai-cell"><div class="ai-cell-lbl">${c.l}</div><div class="ai-cell-val">${c.v}</div></div>`).join("")}</div>
+  <div class="ai-action">${item.action}</div>
+  <div class="ai-owner">${item.owner}</div>`;
+  al.appendChild(div);
+});
+
+// 이탈 위험 테이블
+/* ⚠ SAMPLE — 실제 계산값으로 교체 */
+const riskData=[
+  {name:"김○○",dept:"영업",tenure:"1.2년",perf:"3.2점",engage:18,last1on1:"73일",risk:82,riskLv:"매우위험",action:"즉시 면담",ab:"#FBEAE8",at:"#C0392B"},
+  {name:"이○○",dept:"마케팅",tenure:"2.8년",perf:"3.8점",engage:32,last1on1:"45일",risk:74,riskLv:"매우위험",action:"즉시 면담",ab:"#FBEAE8",at:"#C0392B"},
+  {name:"박○○",dept:"영업",tenure:"0.8년",perf:"2.9점",engage:15,last1on1:"62일",risk:71,riskLv:"매우위험",action:"즉시 면담",ab:"#FBEAE8",at:"#C0392B"},
+  {name:"최○○",dept:"영업",tenure:"3.1년",perf:"3.5점",engage:28,last1on1:"28일",risk:68,riskLv:"위험",action:"커리어 상담",ab:"#F6F0E2",at:"#8A6100"},
+  {name:"정○○",dept:"개발",tenure:"4.2년",perf:"4.1점",engage:55,last1on1:"35일",risk:52,riskLv:"위험",action:"커리어 상담",ab:"#F6F0E2",at:"#8A6100"},
+  {name:"강○○",dept:"디자인",tenure:"1.9년",perf:"3.5점",engage:42,last1on1:"21일",risk:41,riskLv:"주의",action:"모니터링",ab:"#F6F0E2",at:"#8A6100"},
+  {name:"윤○○",dept:"PM",tenure:"2.3년",perf:"4.6점",engage:72,last1on1:"7일",risk:18,riskLv:"안정",action:"유지",ab:"#E8F5EE",at:"#1B7F49"},
+];
+const t=document.getElementById("riskTable");
+t.innerHTML="<thead><tr><th style='text-align:left'>이름</th><th style='text-align:left'>부서</th><th>근속</th><th>성과</th><th>몰입도</th><th>마지막 1:1</th><th>이탈 확률</th><th>위험도</th><th style='text-align:left'>권장 액션</th></tr></thead>"+
+  "<tbody>"+riskData.map(r=>{
+    const isDanger=r.risk>=70;const isWarn=r.risk>=50&&r.risk<70;
+    const rowClass=isDanger?"row-danger":isWarn?"row-warn":"";
+    const engageColor=r.engage<30?"#C0392B":r.engage<50?"#8A6100":"#1B7F49";
+    const engageW=r.engage;
+    return`<tr class="${rowClass}">
+      <td>${r.name}</td><td>${r.dept}</td><td>${r.tenure}</td><td>${r.perf}</td>
+      <td>
+        <div style="display:flex;align-items:center;gap:5px;justify-content:flex-end">
+          <span class="engage-bar" style="width:${engageW*0.5}px;background:${engageColor}"></span>
+          <span style="color:${engageColor};font-weight:600;font-size:13px">${r.engage}%</span>
+        </div>
+      </td>
+      <td style="color:${r.last1on1==="73일"||r.last1on1==="62일"?"#C0392B":r.last1on1==="45일"?"#8A6100":r.last1on1}">${r.last1on1}</td>
+      <td style="font-weight:700;color:${r.risk>=70?"#C0392B":r.risk>=50?"#8A6100":"#1B7F49"}">${r.risk}%</td>
+      <td><span class="risk-badge" style="background:${r.ab};color:${r.at}">${r.riskLv}</span></td>
+      <td><span class="action-badge" style="background:${r.ab};color:${r.at}">${r.action}</span></td>
+    </tr>`;
+  }).join("")+"</tbody>";
+</script>
+</body>
+</html>

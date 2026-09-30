@@ -1,0 +1,936 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=1300">
+<title>세일즈 리텐션 & 매출 변동 | Sales OS</title>
+<link href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard/dist/web/static/pretendard.css" rel="stylesheet">
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+<style>
+*{margin:0;padding:0;box-sizing:border-box}
+svg,canvas{display:block}
+html,body{height:auto!important;overflow:auto!important}
+:root{
+  --bg:#F5F6F8;--card:#FFFFFF;--border:#E6E2E2;
+  --sidebar:#2B2B30;--grid:#ECECF0;
+  --t1:#2B2B30;--t2:#4A4A52;--t3:#6A6A73;--t4:#8A8A94;
+  --c1:#C63B3F;--c2:#7E2124;--c3:#A83035;--c4:#D9565A;--c5:#EFB3B5;
+  --coral:#F7585C;--navy:#31538F;--navy-l:#6E8CC4;
+  --green:#1B7F49;--red:#C0392B;--amber:#8A6100;
+  --green-bg:#E8F5EE;--red-bg:#FBEAE8;--amber-bg:#F6F0E2;--navy-bg:#EDF1F8;
+  --font:'Pretendard',-apple-system,sans-serif;--r:10px;
+}
+body{font-family:var(--font);background:var(--bg);color:var(--t1);display:flex;min-height:1679px;overflow-y:auto;font-size:15px}
+
+.sidebar{width:202px;background:var(--sidebar);display:flex;flex-direction:column;flex-shrink:0}
+.sb-logo{padding:21px 18px 12px;border-bottom:1px solid rgba(255,255,255,.08)}
+.sb-ic{width:39px;height:36px;background:var(--c1);border-radius:7px;display:flex;align-items:center;justify-content:center;margin-bottom:8px}
+.sb-logo .brand{font-size:15px;font-weight:800;color:#fff}
+.sb-logo .sub{font-size:13px;color:rgba(255,255,255,.45);margin-top:1px}
+.sb-grp{font-size:11px;color:rgba(255,255,255,.3);text-transform:uppercase;letter-spacing:.8px;padding:13px 18px 4px}
+.sb-nav{flex:1;padding:6px 0}
+.sb-nav a{display:flex;align-items:center;gap:9px;padding:10px 18px;color:rgba(255,255,255,.55);text-decoration:none;font-size:14px;border-left:2px solid transparent;transition:all .15s}
+.sb-nav a:hover{background:rgba(255,255,255,.05)}
+.sb-nav a.active{border-left-color:var(--c1);background:rgba(198,59,63,.12);color:#fff;font-weight:600}
+.sb-footer{padding:16px 18px;border-top:1px solid rgba(255,255,255,.08);font-size:12px;color:rgba(255,255,255,.3);line-height:1.8}
+
+.main{flex:1;display:flex;flex-direction:column;overflow:visible;min-height:0}
+.topbar{height:60px;display:flex;align-items:center;justify-content:space-between;padding:0 18px;border-bottom:1px solid var(--border);background:var(--card);flex-shrink:0}
+.tb-left{display:flex;align-items:center;gap:11px}
+.topbar h1{font-size:17px;font-weight:700}
+.tb-badge{background:rgba(198,59,63,.08);color:var(--c1);font-size:12px;font-weight:700;padding:3px 12px;border-radius:20px;border:1px solid rgba(198,59,63,.25)}
+.topbar .meta{font-size:14px;color:var(--t3)}
+.btn-sm{padding:6px 16px;border-radius:6px;font-size:14px;font-weight:600;cursor:pointer;border:1px solid var(--border);background:var(--card);color:var(--t2);font-family:var(--font)}
+.btn-pri{background:var(--c1);color:#fff;border-color:var(--c1)}
+/* 날짜 필터 */
+.date-filter-wrap{display:flex;align-items:center;gap:11px;flex:1;justify-content:center}
+.date-filter-lbl{font-size:12px;color:var(--t4);text-transform:uppercase;letter-spacing:.5px;white-space:nowrap}
+.date-chips{display:flex;gap:4px}
+.date-chip{padding:5px 12px;border-radius:5px;font-size:13px;font-weight:500;cursor:pointer;border:1px solid var(--border);background:var(--card);color:var(--t3);font-family:var(--font);transition:all .12s}
+.date-chip:hover{background:var(--bg);color:var(--t2)}
+.date-chip.active{background:var(--c2);color:#fff;border-color:var(--c2);font-weight:600}
+.date-custom{display:flex;align-items:center;gap:5px}
+.date-input{width:91px;padding:4px 8px;border:1px solid var(--border);border-radius:5px;font-size:12px;color:var(--t2);font-family:var(--font);background:var(--card);text-align:center;white-space:nowrap}
+/* KPI 스파크라인 */
+.kpi-spark{display:block;width:100%;height:38px;margin-top:4px}
+
+.content{padding:13px 18px;display:flex;flex-direction:column;gap:14px;overflow:visible;height:auto}
+
+/* KPI */
+.row1{display:grid;grid-template-columns:repeat(6,1fr);gap:11px;flex-shrink:0}
+.kpi{background:var(--card);border:1px solid var(--border);border-radius:var(--r);padding:13px 17px;box-shadow:0 1px 4px rgba(15,23,42,.04)}
+.kpi-lbl{font-size:11px;color:var(--t4);text-transform:uppercase;letter-spacing:.6px;margin-bottom:4px}
+.kpi-val{font-size:23px;font-weight:800;color:var(--t1);line-height:1;letter-spacing:-.5px}
+.kpi-sub{display:flex;align-items:center;gap:5px;margin-top:5px;flex-wrap:wrap}
+.kpi-def{font-size:11px;color:var(--t4);margin-top:2px;line-height:1.4}
+.badge{display:inline-flex;align-items:center;padding:1.5px 6px;border-radius:4px;font-size:11px;font-weight:700}
+.bg{background:var(--green-bg);color:var(--green)}
+.br{background:var(--red-bg);color:var(--red)}
+.bn{background:#EDF1F8;color:var(--c2)}
+
+/* ROWS */
+.row2{display:grid;grid-template-columns:2fr 1fr;gap:14px;height:322px;flex-shrink:0}
+.row3{display:grid;grid-template-columns:1.2fr 1fr 1fr;gap:14px;height:299px;flex-shrink:0}
+.row4{display:grid;grid-template-columns:1fr 1.8fr;gap:14px;min-height:253px}
+
+.card{background:var(--card);border:1px solid var(--border);border-radius:var(--r);padding:16px 18px;display:flex;flex-direction:column;overflow:hidden;box-shadow:0 1px 4px rgba(15,23,42,.05)}
+.card-hd{display:flex;align-items:flex-start;gap:11px;margin-bottom:8px;flex-shrink:0}
+.card-num{width:26px;height:24px;border-radius:5px;background:var(--sidebar);color:#fff;font-size:12px;font-weight:700;display:flex;align-items:center;justify-content:center;flex-shrink:0;margin-top:1px;white-space:nowrap}
+.card-title{font-size:15px;font-weight:700;color:var(--t1)}
+.card-sub{font-size:12px;color:var(--t3);margin-top:1px}
+.chart-wrap{position:relative;flex:1;min-height:0;overflow:visible}
+.chart-wrap canvas{position:absolute;top:0;left:0;width:100%!important;height:100%!important}
+
+/* 차트 요약 한줄 */
+.chart-summary{font-size:13px;color:var(--t2);background:#ECECF0;border-left:2px solid var(--c1);padding:6px 10px;border-radius:0 5px 5px 0;margin-bottom:7px;flex-shrink:0;line-height:1.5}
+.chart-summary b{color:var(--t1)}
+
+/* 워터폴 / What-if */
+.waterfall-wrap{flex:1;min-height:0;position:relative}
+/* What-if 시뮬레이터 */
+.sim-wrap{flex:1;display:flex;flex-direction:column;gap:11px;overflow:hidden}
+.sim-row{display:flex;align-items:center;gap:11px}
+.sim-lbl{font-size:13px;color:var(--t2);width:104px;flex-shrink:0;font-weight:600;white-space:nowrap}
+.sim-track{flex:1;height:4px;border-radius:2px;background:var(--border);cursor:pointer;-webkit-appearance:none;appearance:none;outline:none}
+.sim-track::-webkit-slider-thumb{-webkit-appearance:none;width:18px;height:17px;border-radius:50%;background:var(--c2);border:2px solid #fff;box-shadow:0 1px 4px rgba(0,0,0,.15);cursor:pointer}
+.sim-track::-moz-range-thumb{width:18px;height:17px;border-radius:50%;background:var(--c2);border:2px solid #fff;cursor:pointer}
+.sim-val{font-size:13px;font-weight:700;color:var(--t1);width:52px;text-align:right;flex-shrink:0;white-space:nowrap}
+.sim-result{background:var(--bg);border-radius:8px;padding:13px 16px;border:1px solid var(--border);display:grid;grid-template-columns:repeat(3,1fr);gap:11px;flex-shrink:0}
+.sim-res-item{text-align:center}
+.sim-res-lbl{font-size:11px;color:var(--t4);text-transform:uppercase;letter-spacing:.4px;margin-bottom:3px}
+.sim-res-val{font-size:17px;font-weight:800;color:var(--t1);letter-spacing:-.3px}
+.sim-res-delta{font-size:12px;font-weight:700;margin-top:2px}
+/* 이상치 배너 */
+.anomaly-banner{display:flex;align-items:center;gap:11px;background:#FBEAE8;border:1px solid rgba(239,68,68,.2);border-radius:7px;padding:9px 13px;margin-bottom:8px;flex-shrink:0}
+.anomaly-banner-dot{width:8px;height:8px;border-radius:50%;background:#C0392B;flex-shrink:0;animation:pulse 2s infinite}
+@keyframes pulse{0%,100%{opacity:1}50%{opacity:.4}}
+.anomaly-banner-txt{font-size:13px;color:var(--t1);flex:1}
+.anomaly-banner-txt b{color:#C0392B}
+.anomaly-banner-badge{font-size:11px;font-weight:700;background:#C0392B;color:#fff;padding:3px 9px;border-radius:10px;white-space:nowrap;flex-shrink:0}
+
+/* 코호트 히트맵 */
+.cohort-hd-row{display:flex;gap:3px;padding-left:82px;margin-bottom:3px;flex-shrink:0}
+.cohort-hd-cell{flex:1;font-size:11px;color:var(--t4);text-align:center}
+.cohort-wrap{display:flex;flex-direction:column;gap:3px;flex:1;overflow:hidden}
+.cohort-row{display:flex;align-items:center;gap:3px}
+.cohort-meta{width:107px;flex-shrink:0;display:flex;flex-direction:column}
+.cohort-month{font-size:12px;color:var(--t2);font-weight:600}
+.cohort-size{font-size:11px;color:var(--t4)}
+.cohort-cells{display:flex;gap:3px;flex:1}
+.cohort-cell{flex:1;height:31px;border-radius:3px;display:flex;align-items:center;justify-content:center;font-size:12px;font-weight:700;cursor:default}
+
+/* 파레토 탭 */
+.tab-row{display:flex;gap:5px;margin-bottom:8px;flex-shrink:0}
+.tab-btn{padding:4px 13px;border-radius:5px;font-size:13px;font-weight:600;cursor:pointer;border:1px solid var(--border);background:var(--bg);color:var(--t3);font-family:var(--font);transition:all .12s}
+.tab-btn.active{background:var(--c2);color:#fff;border-color:var(--c2)}
+
+/* LTV 서브카피 */
+.ltv-caption{font-size:12px;color:var(--t3);background:#ECECF0;padding:8px 12px;border-radius:6px;line-height:1.55;margin-top:6px;flex-shrink:0;border:1px solid var(--border)}
+.ltv-caption b{color:var(--c1)}
+
+/* AI 인사이트 */
+.ai-list{display:flex;flex-direction:column;gap:9px;flex:1;overflow:auto}
+.ai-item{border:1px solid var(--border);border-radius:8px;padding:12px 14px;background:var(--bg)}
+.ai-item-hd{display:flex;align-items:center;gap:8px;margin-bottom:6px}
+.ai-idx{width:26px;height:24px;border-radius:6px;background:var(--sidebar);color:#fff;font-size:12px;font-weight:700;display:flex;align-items:center;justify-content:center;flex-shrink:0;white-space:nowrap}
+.ai-title{font-size:14px;font-weight:700;color:var(--t1);flex:1}
+.ai-pri{font-size:11px;font-weight:700;padding:3px 9px;border-radius:10px}
+.ai-grid{display:grid;grid-template-columns:1fr 1fr;gap:5px;margin-bottom:6px}
+.ai-cell{background:var(--card);border:1px solid var(--border);border-radius:5px;padding:5px 9px}
+.ai-cell-lbl{font-size:11px;color:var(--t4);text-transform:uppercase;letter-spacing:.3px;margin-bottom:1px}
+.ai-cell-val{font-size:13px;font-weight:600;color:var(--t1)}
+.ai-action{font-size:12px;color:var(--t2);line-height:1.5;border-top:1px solid var(--border);padding-top:5px}
+.ai-action b{color:var(--t1)}
+
+/* 세그먼트 테이블 */
+.perf-table{width:100%;border-collapse:collapse;font-size:14px}
+.perf-table thead{position:sticky;top:0;z-index:2;background:var(--card)}
+.perf-table thead tr{border-bottom:2px solid var(--border)}
+.perf-table th{font-size:12px;color:var(--t3);text-transform:uppercase;letter-spacing:.4px;padding:0 9px 8px;text-align:right;font-weight:700;white-space:nowrap}
+.perf-table th:first-child{text-align:left}
+.perf-table tbody tr{border-bottom:1px solid #ECECF0;transition:background .1s}
+.perf-table tbody tr:hover{background:#ECECF0}
+.perf-table tbody tr.row-danger{background:#ECECF0;border-left:3px solid #C0392B}
+.perf-table tbody tr.row-warn{background:#ECECF0;border-left:3px solid rgba(42,125,181,.3)}
+.perf-table td{padding:13px 12px;text-align:right;color:var(--t2);white-space:nowrap;vertical-align:middle}
+.perf-table td:first-child{text-align:left;color:var(--t1);font-weight:700;font-size:15px}
+.perf-table tr.total-row td{border-bottom:none;font-weight:700;border-top:2px solid var(--border);background:#ECECF0;color:var(--t1);padding:14px 12px}
+.seg-bar{display:inline-block;height:5px;border-radius:3px;background:var(--c1);vertical-align:middle;margin-right:5px}
+.action-badge{display:inline-block;padding:4px 10px;border-radius:5px;font-size:12px;font-weight:700;white-space:nowrap}
+.risk-icon{display:inline-flex;align-items:center;justify-content:center;width:21px;height:19px;border-radius:50%;font-size:12px;font-weight:800;margin-right:5px;flex-shrink:0;white-space:nowrap}
+.churn-bar-wrap{display:flex;align-items:center;gap:7px;justify-content:flex-end}
+.churn-bar-track{width:62px;height:5px;background:#ECECF0;border-radius:3px;overflow:hidden}
+.churn-bar-fill{height:100%;border-radius:3px}
+
+/* ── STEP GUIDE ── */
+.step-guide{background:#fff;border:1px solid var(--border);border-radius:var(--r);padding:18px 21px;margin-top:2px;box-shadow:0 1px 4px rgba(15,23,42,.05);flex-shrink:0}
+.step-guide-hd{display:flex;align-items:center;gap:11px;margin-bottom:12px;padding-bottom:10px;border-bottom:1px solid var(--border)}
+.step-guide-title{font-size:15px;font-weight:800;color:var(--t1)}
+.step-guide-sub{font-size:12px;color:var(--t3);margin-top:1px}
+.step-guide-icon{width:36px;height:34px;border-radius:7px;background:var(--sidebar);display:flex;align-items:center;justify-content:center;flex-shrink:0}
+.step-guide-body{display:grid;grid-template-columns:1.4fr 1fr 1.6fr;gap:22px}
+.step-col-title{font-size:12px;font-weight:700;color:var(--t3);text-transform:uppercase;letter-spacing:.7px;margin-bottom:8px}
+.step-flow{display:flex;flex-direction:column;gap:7px}
+.step-flow-item{display:flex;align-items:flex-start;gap:9px}
+.step-fn{width:23px;height:22px;border-radius:4px;background:var(--sidebar);color:#fff;font-size:11px;font-weight:700;display:flex;align-items:center;justify-content:center;flex-shrink:0;margin-top:1px;white-space:nowrap}
+.step-arrow{width:23px;height:22px;display:flex;align-items:center;justify-content:center;color:var(--t4);font-size:13px;flex-shrink:0;white-space:nowrap}
+.step-ft{font-size:13px;color:var(--t2);line-height:1.4}
+.step-ft b{color:var(--t1);font-weight:700}
+.step-iact{display:flex;flex-direction:column;gap:7px}
+.step-iact-item{display:flex;align-items:flex-start;gap:8px;background:var(--bg);border-radius:6px;padding:8px 10px}
+.step-iact-ic{width:21px;height:19px;border-radius:3px;background:var(--c1);display:flex;align-items:center;justify-content:center;flex-shrink:0;margin-top:1px}
+.step-iact-txt{font-size:13px;color:var(--t2);line-height:1.4}
+.step-iact-txt b{color:var(--t1)}
+.step-q{display:flex;flex-direction:column;gap:7px}
+.step-q-item{border-left:2px solid var(--c1);padding:6px 10px;background:var(--bg);border-radius:0 6px 6px 0}
+.step-q-num{font-size:11px;color:var(--c1);font-weight:700;margin-bottom:2px;text-transform:uppercase;letter-spacing:.4px}
+.step-q-txt{font-size:13px;color:var(--t1);font-weight:600;line-height:1.4}
+.step-q-hint{font-size:12px;color:var(--t3);margin-top:2px;line-height:1.4}
+
+</style>
+</head>
+<body>
+
+<aside class="sidebar">
+  <div class="sb-logo">
+    <div class="sb-ic">
+      <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2.2"><polyline points="22 7 13.5 15.5 8.5 10.5 2 17"/><polyline points="16 7 22 7 22 13"/></svg>
+    </div>
+    <div class="brand">Sales OS</div>
+    <div class="sub">Retention & Revenue</div>
+  </div>
+  <nav class="sb-nav">
+    <div class="sb-grp">Overview</div>
+    <a href="#" class="active">
+      <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="2" y="3" width="20" height="14" rx="2"/></svg>리텐션 현황
+    </a>
+    <a href="#">
+      <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 3v18h18"/><path d="M18 17V9"/><path d="M13 17V5"/><path d="M8 17v-3"/></svg>MRR 분석
+    </a>
+    <div class="sb-grp">Deep Dive</div>
+    <a href="#">
+      <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><path d="M12 8v4l3 3"/></svg>코호트 분석
+    </a>
+    <a href="#">
+      <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/></svg>고객 세그먼트
+    </a>
+    <a href="#">
+      <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/></svg>이탈 예측
+    </a>
+  </nav>
+  <div class="sb-footer">
+    기준: 2024.01–06<br>
+    구독형 B2B SaaS<br>
+    MRR 기준 · 고객 계정 단위
+  </div>
+</aside>
+
+<div class="main">
+  <div class="topbar">
+    <div class="tb-left">
+      <h1>세일즈 리텐션 & 매출 변동 분석</h1>
+      <span class="tb-badge">구독형 반복매출 · 계정 기준</span>
+    </div>
+    <!-- 날짜 필터 -->
+    <div class="date-filter-wrap">
+      <span class="date-filter-lbl">기준일</span>
+      <div class="date-chips">
+        <button class="date-chip" onclick="setDate('7d',this)">최근 7일</button>
+        <button class="date-chip active" onclick="setDate('30d',this)">최근 30일</button>
+        <button class="date-chip" onclick="setDate('q',this)">이번 분기</button>
+        <button class="date-chip" onclick="setDate('6m',this)">6개월</button>
+        <button class="date-chip" onclick="setDate('1y',this)">1년</button>
+      </div>
+      <div class="date-custom">
+        <input type="text" class="date-input" id="dateFrom" value="2024.01.01" readonly>
+        <span style="font-size:12px;color:var(--t4)">–</span>
+        <input type="text" class="date-input" id="dateTo" value="2024.06.30" readonly>
+      </div>
+      <div id="dateLabel" style="font-size:12px;color:var(--t3);white-space:nowrap">기준: 최근 30일 · MRR 기준</div>
+    </div>
+    <div style="display:flex;gap:6px">
+      <button class="btn-sm">CSV 내보내기</button>
+      <button class="btn-sm btn-pri">이탈 예측 실행</button>
+    </div>
+  </div>
+
+  <div class="content">
+
+    <!-- ⚠ SAMPLE — 아래 수치는 디자인 예시. data/ 실제 계산값으로 교체할 것 -->
+    <!-- ROW 1: KPI - 정의 포함 -->
+    <div class="row1">
+      <div class="kpi">
+        <div class="kpi-lbl">MRR <span style="font-size:11px;color:var(--t4);font-weight:400">· 최근 30일</span></div>
+        <div class="kpi-val">₩284M</div>
+        <div class="kpi-sub"><span class="badge bg">▲ +8.2% MoM</span></div>
+        <canvas class="kpi-spark" id="spark0"></canvas>
+        <div class="kpi-def">월간 반복매출 · 계정 기준</div>
+      </div>
+      <div class="kpi">
+        <div class="kpi-lbl">M6 코호트 리텐션 <span style="font-size:11px;color:var(--t4);font-weight:400">· 2024.01</span></div>
+        <div class="kpi-val">68%</div>
+        <div class="kpi-sub"><span class="badge bn">코호트 기준</span></div>
+        <canvas class="kpi-spark" id="spark1"></canvas>
+        <div class="kpi-def">6개월 후 잔존율 · 계정 기준</div>
+      </div>
+      <div class="kpi">
+        <div class="kpi-lbl">평균 LTV <span style="font-size:11px;color:var(--t4);font-weight:400">· 이번 분기</span></div>
+        <div class="kpi-val">₩1.24M</div>
+        <div class="kpi-sub"><span class="badge bg">▲ +12.4% QoQ</span></div>
+        <canvas class="kpi-spark" id="spark2"></canvas>
+        <div class="kpi-def">계약기간 × 월평균 매출 · 전체 평균</div>
+      </div>
+      <div class="kpi">
+        <div class="kpi-lbl">Revenue Churn <span style="font-size:11px;color:var(--t4);font-weight:400">· 최근 30일</span></div>
+        <div class="kpi-val">3.2%</div>
+        <div class="kpi-sub"><span class="badge bg">▼ -0.4%p MoM</span></div>
+        <canvas class="kpi-spark" id="spark3"></canvas>
+        <div class="kpi-def">이탈 MRR / 전월 MRR · 매출 기준</div>
+      </div>
+      <div class="kpi">
+        <div class="kpi-lbl">신규 MRR <span style="font-size:11px;color:var(--t4);font-weight:400">· 최근 30일</span></div>
+        <div class="kpi-val">₩42M</div>
+        <div class="kpi-sub"><span class="badge bg">▲ +18.3% MoM</span></div>
+        <canvas class="kpi-spark" id="spark4"></canvas>
+        <div class="kpi-def">신규 계약 월간 매출 · 업셀 별도</div>
+      </div>
+      <div class="kpi">
+        <div class="kpi-lbl">NRR <span style="font-size:11px;color:var(--t4);font-weight:400">· 이번 분기</span></div>
+        <div class="kpi-val">112%</div>
+        <div class="kpi-sub"><span class="badge bg">▲ +3%p QoQ</span></div>
+        <canvas class="kpi-spark" id="spark5"></canvas>
+        <div class="kpi-def">기존 고객 순매출 잔존율 · 신규 제외</div>
+      </div>
+    </div>
+
+    <!-- ROW 2: MRR 스택 + 워터폴 -->
+    <div class="row2">
+
+      <!-- MRR 구성 추이 -->
+      <div class="card">
+        <div class="card-hd" style="align-items:center">
+          <div class="card-num">1</div>
+          <div style="flex:1">
+            <div class="card-title">MRR 구성 추이 · 순반복매출</div>
+            <div class="card-sub">좌축: 변동 MRR(₩M) · 우축: 전월 대비 성장률(%) · 빨간 막대=이탈 차감</div>
+          </div>
+          <div id="mrrFilters" style="display:flex;gap:5px;flex-wrap:wrap"></div>
+        </div>
+        <div class="chart-summary">
+          <b>4월 이후 이탈 MRR 감소 전환</b> — 확장 MRR이 이탈을 초과하며 NRR 112% 달성. 단, 5·6월 신규 MRR 증가세는 둔화 중.
+        </div>
+        <div class="chart-wrap"><canvas id="mrrChart"></canvas></div>
+      </div>
+
+      <!-- What-if 시뮬레이터 -->
+      <div class="card">
+        <div class="card-hd">
+          <div class="card-num">2</div>
+          <div>
+            <div class="card-title">AI What-if 시뮬레이터</div>
+            <div class="card-sub">Churn율·확장률 조정 → MRR·NRR 실시간 예측 · 다항회귀 기반</div>
+          </div>
+        </div>
+        <div class="sim-wrap" id="simWrap">
+          <div class="sim-row">
+            <div class="sim-lbl">Revenue Churn</div>
+            <input type="range" id="slChurn" min="0.5" max="8" step="0.1" value="3.2" class="sim-track" oninput="updateSim()">
+            <div class="sim-val" id="vChurn">3.2%</div>
+          </div>
+          <div class="sim-row">
+            <div class="sim-lbl">확장 MRR 비율</div>
+            <input type="range" id="slExp" min="2" max="15" step="0.5" value="6.7" class="sim-track" oninput="updateSim()">
+            <div class="sim-val" id="vExp">6.7%</div>
+          </div>
+          <div class="sim-row">
+            <div class="sim-lbl">신규 MRR</div>
+            <input type="range" id="slNew" min="20" max="80" step="1" value="42" class="sim-track" oninput="updateSim()">
+            <div class="sim-val" id="vNew">₩42M</div>
+          </div>
+          <div class="sim-result">
+            <div class="sim-res-item">
+              <div class="sim-res-lbl">예측 MRR</div>
+              <div class="sim-res-val" id="resMRR">₩297M</div>
+              <div class="sim-res-delta" id="resMRRd" style="color:#1B7F49">▲ +₩13M</div>
+            </div>
+            <div class="sim-res-item">
+              <div class="sim-res-lbl">예측 NRR</div>
+              <div class="sim-res-val" id="resNRR">112%</div>
+              <div class="sim-res-delta" id="resNRRd" style="color:#1B7F49">유지</div>
+            </div>
+            <div class="sim-res-item">
+              <div class="sim-res-lbl">3개월 후 MRR</div>
+              <div class="sim-res-val" id="resFore">₩334M</div>
+              <div class="sim-res-delta" id="resForeDelta" style="color:#1B7F49">▲ +17.6%</div>
+            </div>
+          </div>
+          <div style="font-size:12px;color:var(--t3);line-height:1.6;padding:8px 3px;border-top:1px solid var(--border);flex-shrink:0">
+            슬라이더를 조정하면 다항회귀 모델이 MRR 변화를 실시간 예측합니다.<br>
+            <b style="color:var(--t2)">Churn 1%p 감소</b> = 약 ₩9M 순매출 개선 효과
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ROW 3: 코호트 히트맵 + 파레토 + LTV 분포 -->
+    <div class="row3">
+
+      <!-- 코호트 히트맵 (분모 포함) -->
+      <div class="card">
+        <div class="card-hd">
+          <div class="card-num">3</div>
+          <div>
+            <div class="card-title">코호트 리텐션 히트맵</div>
+            <div class="card-sub">행=가입월 · n=코호트 규모 · 색=잔존율 · hover=잔존 고객수</div>
+          </div>
+        </div>
+        <div class="cohort-hd-row" id="cohortHdRow"></div>
+        <div class="cohort-wrap" id="cohortWrap"></div>
+      </div>
+
+      <!-- 이탈 원인 파레토 (탭) -->
+      <div class="card">
+        <div class="card-hd">
+          <div class="card-num">4</div>
+          <div>
+            <div class="card-title">이탈 원인 파레토</div>
+            <div class="card-sub">누적 80% 집중 원칙 · 탭으로 건수/매출 영향 전환</div>
+          </div>
+        </div>
+        <div class="tab-row">
+          <button class="tab-btn active" onclick="switchPareto('count',this)">건수 기준</button>
+          <button class="tab-btn" onclick="switchPareto('revenue',this)">매출 영향</button>
+        </div>
+        <div class="chart-wrap"><canvas id="paretoChart"></canvas></div>
+      </div>
+
+      <!-- LTV 분포 -->
+      <div class="card">
+        <div class="card-hd">
+          <div class="card-num">5</div>
+          <div>
+            <div class="card-title">고객 LTV 분포</div>
+            <div class="card-sub">구간별 고객 비중 · CAC 대비 이익 구간 표시</div>
+          </div>
+        </div>
+        <div class="chart-wrap"><canvas id="ltvChart"></canvas></div>
+        <div class="ltv-caption">고객의 <b>56%</b>가 중가치 구간(₩500K–₩2M) 집중. <b>2·3구간 → 상위 전환 프로그램</b>이 효율 최고: CAC 대비 LTV 배수 3.8×. 유지 캠페인 우선 타겟.</div>
+      </div>
+    </div>
+
+    <!-- ROW 4: AI 인사이트 + 세그먼트 테이블 -->
+    <div class="row4">
+
+      <!-- AI 인사이트 (영향도+우선순위+액션) -->
+      <div class="card">
+        <div class="card-hd">
+          <div class="card-num">6</div>
+          <div>
+            <div class="card-title">AI 운영 알림 & 액션</div>
+            <div class="card-sub">영향도 · 우선순위 · 권장 액션 포함</div>
+          </div>
+        </div>
+        <div class="ai-list" id="aiList"></div>
+      </div>
+
+      <!-- 세그먼트별 리텐션 테이블 -->
+      <div class="card" style="overflow:auto">
+        <div class="card-hd" style="flex-shrink:0">
+          <div class="card-num">7</div>
+          <div>
+            <div class="card-title">플랜별 리텐션 & 매출 변동 분석</div>
+            <div class="card-sub">Revenue Churn · NRR · 평균 LTV · MoM · 권장 액션 배지 · 위험 행 하이라이트 · 계정 기준</div>
+          </div>
+        </div>
+        <div class="anomaly-banner" id="anomalyBanner">
+          <div class="anomaly-banner-dot"></div>
+          <div class="anomaly-banner-txt">자동 감지: <b>스타터 플랜 Churn 5.2%</b>가 전체 평균(3.2%) 대비 <b>+1.6 표준편차</b> 초과 — 즉시 확인 필요</div>
+          <span class="anomaly-banner-badge">이상치 감지</span>
+        </div>
+        <div style="overflow:auto;flex:1">
+          <table class="perf-table" id="segTable"></table>
+        </div>
+      </div>
+    </div>
+
+
+
+
+  </div>
+</div>
+</div><!-- wrapper -->
+
+<script>
+/* ══════════════════════════════════════════════════════════════════
+   ⚠ SAMPLE DATA — 아래 데이터 블록의 수치는 전부 "디자인용 예시"다.
+   /build-dashboard 실행 시 data/ 의 실제 계산값으로 **전량 교체**한다.
+   · 교체 대상 : sparkData · newMRR · expMRR · churnMRR · growthRate · cohortMonths · cohortSizes · cohortData · paretoCount · paretoRevenue · ltvData · aiItems · segments
+   · 유지 대상 : dateRanges · months · mLabels · ltvLabels · chColor · 각종 plugin
+   · 필드명·배열 길이·JS 로직은 그대로 두고 **값만** 바꾼다.
+   · Math.random() 등으로 데이터를 생성하지 않는다.
+   ══════════════════════════════════════════════════════════════════ */
+Chart.defaults.font.family="'Pretendard',-apple-system,sans-serif";
+const c1="#C63B3F",c2="#7E2124",c3="#A83035",c4="#D9565A",c5="#EFB3B5";
+
+// ── 날짜 필터 ──
+const dateRanges={
+  "7d":{from:"2024.06.24",to:"2024.06.30",label:"최근 7일 · MRR 기준"},
+  "30d":{from:"2024.06.01",to:"2024.06.30",label:"최근 30일 · MRR 기준"},
+  "q":{from:"2024.04.01",to:"2024.06.30",label:"이번 분기(Q2) · MRR 기준"},
+  "6m":{from:"2024.01.01",to:"2024.06.30",label:"최근 6개월 · MRR 기준"},
+  "1y":{from:"2023.07.01",to:"2024.06.30",label:"최근 1년 · MRR 기준"},
+};
+window.setDate=function(key,btn){
+  document.querySelectorAll(".date-chip").forEach(b=>b.classList.remove("active"));
+  btn.classList.add("active");
+  const r=dateRanges[key];
+  document.getElementById("dateFrom").value=r.from;
+  document.getElementById("dateTo").value=r.to;
+  document.getElementById("dateLabel").textContent="기준: "+r.label;
+};
+
+// ── KPI 스파크라인 (순수 Canvas 그라디언트 영역 차트) ──
+function drawSparkline(canvasId, data, color, isDown){
+  const canvas=document.getElementById(canvasId);
+  if(!canvas)return;
+  const dpr=window.devicePixelRatio||1;
+  const W=canvas.offsetWidth||180;
+  const H=32;
+  canvas.width=W*dpr;canvas.height=H*dpr;
+  canvas.style.width=W+"px";canvas.style.height=H+"px";
+  const ctx=canvas.getContext("2d");
+  ctx.scale(dpr,dpr);
+  const mn=Math.min(...data)*0.96,mx=Math.max(...data)*1.04;
+  const range=mx-mn||1;
+  const pts=data.map((v,i)=>({
+    x:2+i/(data.length-1)*(W-4),
+    y:4+(H-8)*(1-(v-mn)/range)
+  }));
+  // 그라디언트 fill
+  const grad=ctx.createLinearGradient(0,0,0,H);
+  grad.addColorStop(0,color+"45");
+  grad.addColorStop(1,color+"00");
+  ctx.beginPath();
+  pts.forEach((p,i)=>i===0?ctx.moveTo(p.x,p.y):ctx.lineTo(p.x,p.y));
+  ctx.lineTo(pts[pts.length-1].x,H);
+  ctx.lineTo(pts[0].x,H);
+  ctx.closePath();
+  ctx.fillStyle=grad;
+  ctx.fill();
+  // 라인
+  ctx.beginPath();
+  pts.forEach((p,i)=>i===0?ctx.moveTo(p.x,p.y):ctx.lineTo(p.x,p.y));
+  ctx.strokeStyle=color;
+  ctx.lineWidth=1.8;
+  ctx.lineJoin="round";
+  ctx.stroke();
+  // 마지막 점 강조
+  const last=pts[pts.length-1];
+  ctx.beginPath();
+  ctx.arc(last.x,last.y,3,0,Math.PI*2);
+  ctx.fillStyle=color;
+  ctx.fill();
+}
+
+// 스파크라인 데이터 (최근 8개월 트렌드)
+/* ⚠ SAMPLE — 실제 계산값으로 교체 */
+const sparkData=[
+  {id:"spark0",data:[242,255,261,270,278,284,292,299],color:"#1B7F49"},     // MRR 상승
+  {id:"spark1",data:[62,64,66,67,67,68,68,69],color:"#1B7F49"},             // 리텐션 상승
+  {id:"spark2",data:[0.98,1.04,1.08,1.14,1.18,1.24,1.28,1.31],color:"#1B7F49"},// LTV 상승
+  {id:"spark3",data:[4.2,4.0,3.9,3.7,3.5,3.2,3.1,2.9],color:"#1B7F49"},// Churn 하락(긍정)
+  {id:"spark4",data:[28,32,34,36,39,42,43,45],color:"#1B7F49"},             // 신규 MRR 상승
+  {id:"spark5",data:[104,106,108,109,110,112,113,114],color:"#1B7F49"},     // NRR 상승
+];
+// DOM 렌더 후 실행
+window.addEventListener("load",()=>{
+  sparkData.forEach(s=>drawSparkline(s.id,s.data,s.color));
+});
+
+function fmt(n){
+  if(n>=1e8)return(n/1e8).toFixed(1)+"억";
+  if(n>=1e6)return(n/1e6).toFixed(1)+"M";
+  if(n>=1e3)return(n/1e3).toFixed(0)+"K";
+  return n.toLocaleString();
+}
+
+// ── MRR 스택 + 성장률 라인 ──
+const months=["1월","2월","3월","4월","5월","6월","7월(예)","8월(예)","9월(예)"];
+/* ⚠ SAMPLE — 실제 계산값으로 교체 */
+const newMRR=[38,40,39,41,42,42,null,null,null];
+/* ⚠ SAMPLE — 실제 계산값으로 교체 */
+const expMRR=[12,14,15,16,17,19,null,null,null];
+/* ⚠ SAMPLE — 실제 계산값으로 교체 */
+const churnMRR=[-8,-7,-8,-5,-5,-6,null,null,null];
+/* ⚠ SAMPLE — 실제 계산값으로 교체 */
+const growthRate=[3.2,5.1,3.8,4.4,4.1,3.9,null,null,null];
+
+const mrrCtx=document.getElementById("mrrChart").getContext("2d");
+const mrrChart=new Chart(mrrCtx,{
+  type:"bar",
+  data:{labels:months,datasets:[
+    {type:"bar",label:"신규 MRR (₩M)",data:newMRR,backgroundColor:"#2B2B30",borderRadius:3,stack:"s",yAxisID:"y"},
+    {type:"bar",label:"확장 MRR (₩M)",data:expMRR,backgroundColor:"#1B7F49",borderRadius:3,stack:"s",yAxisID:"y"},
+    {type:"bar",label:"이탈 MRR (₩M)",data:churnMRR,backgroundColor:"#C63B3F",borderRadius:3,stack:"s",yAxisID:"y"},
+    {type:"line",label:"MoM 성장률 (%)",data:growthRate,borderColor:"#8A6100",backgroundColor:"transparent",
+     borderWidth:2,pointRadius:3,pointBackgroundColor:c1,tension:.3,yAxisID:"y2"},
+    // 예측 데이터 (다항회귀 기반 7~9월)
+    {type:"line",label:"MRR 예측 (₩M)",data:[null,null,null,null,null,284,297,311,326],
+     borderColor:"#2B2B30",backgroundColor:"transparent",borderWidth:1.5,borderDash:[5,4],
+     pointRadius:[0,0,0,0,0,4,4,4,4],pointBackgroundColor:"#2B2B30",tension:.3,yAxisID:"y3"},
+  ]},
+  // 레이블도 7~9월 추가
+
+  options:{
+    responsive:true,maintainAspectRatio:false,
+    clip:false,
+    plugins:{
+      legend:{position:"bottom",labels:{boxWidth:8,font:{size:13},padding:8}},
+      tooltip:{backgroundColor:"#2B2B30",mode:"index",intersect:false,callbacks:{
+        label:c=>{
+          if(c.datasetIndex===3)return`MoM 성장률: ${c.raw}%`;
+          return`${c.dataset.label}: ₩${Math.abs(c.raw)}M`;
+        }
+      }}
+    },
+    scales:{
+      x:{grid:{color:"#ECECF0"},ticks:{font:{size:12}}},
+      y:{grid:{color:"#ECECF0"},ticks:{font:{size:12},callback:v=>"₩"+Math.abs(v)+"M"},
+         title:{display:true,text:"변동 MRR (₩M) — 빨간 막대=이탈 차감",font:{size:12},color:"#8A8A94"},stacked:true},
+      y2:{grid:{display:false},ticks:{font:{size:12},callback:v=>v+"%"},
+          title:{display:true,text:"MoM 성장률 (%)",font:{size:12},color:"#8A8A94"},position:"right"},
+      y3:{display:false,min:200,max:380}
+    }
+  }
+});
+
+// 트렌드 필터
+const mrrFilters=document.getElementById("mrrFilters");
+[{label:"신규",color:c2},{label:"확장",color:c3},{label:"이탈",color:"#C0392B"},{label:"성장률",color:c1}].forEach((g,i)=>{
+  const btn=document.createElement("button");
+  btn.style.cssText=`padding:3px 10px;border-radius:4px;font-size:13px;font-weight:600;cursor:pointer;border:1px solid ${g.color};background:${g.color};color:#fff;font-family:'Pretendard'`;
+  btn.textContent=g.label;
+  btn.addEventListener("click",()=>{
+    const ds=mrrChart.data.datasets[i];
+    ds.hidden=!ds.hidden;btn.style.opacity=ds.hidden?"0.35":"1";mrrChart.update();
+  });
+  mrrFilters.appendChild(btn);
+});
+
+// ── What-if 시뮬레이터 ──
+const BASE_MRR=284;
+const BASE_NRR=112;
+
+function updateSim(){
+  const churn=parseFloat(document.getElementById("slChurn").value);
+  const expRate=parseFloat(document.getElementById("slExp").value);
+  const newM=parseFloat(document.getElementById("slNew").value);
+
+  document.getElementById("vChurn").textContent=churn.toFixed(1)+"%";
+  document.getElementById("vExp").textContent=expRate.toFixed(1)+"%";
+  document.getElementById("vNew").textContent="₩"+newM+"M";
+
+  // 예측 MRR = BASE + 신규 + 확장 - 이탈
+  const churnLoss=BASE_MRR*(churn/100);
+  const expGain=BASE_MRR*(expRate/100);
+  const predMRR=Math.round(BASE_MRR+newM+expGain-churnLoss);
+  const mrrDelta=predMRR-BASE_MRR;
+
+  // NRR = (기존MRR - 이탈 + 확장) / 기존MRR
+  const predNRR=Math.round(((BASE_MRR-churnLoss+expGain)/BASE_MRR)*100);
+
+  // 3개월 후 MRR (복리 성장)
+  const momGrowth=(predMRR-BASE_MRR)/BASE_MRR;
+  const fore3=Math.round(predMRR*Math.pow(1+momGrowth,3));
+  const foreDelta=((fore3-BASE_MRR)/BASE_MRR*100).toFixed(1);
+
+  document.getElementById("resMRR").textContent="₩"+predMRR+"M";
+  const mrrDEl=document.getElementById("resMRRd");
+  mrrDEl.textContent=(mrrDelta>=0?"▲ +₩":"▼ ₩")+Math.abs(mrrDelta)+"M";
+  mrrDEl.style.color=mrrDelta>=0?"#1B7F49":"#C0392B";
+
+  document.getElementById("resNRR").textContent=predNRR+"%";
+  const nrrD=document.getElementById("resNRRd");
+  const nrrDelta=predNRR-BASE_NRR;
+  nrrD.textContent=(nrrDelta>=0?"▲ +":"▼ ")+nrrDelta+"%p";
+  nrrD.style.color=nrrDelta>=0?"#1B7F49":"#C0392B";
+
+  document.getElementById("resFore").textContent="₩"+fore3+"M";
+  const foreD=document.getElementById("resForeDelta");
+  foreD.textContent=(parseFloat(foreDelta)>=0?"▲ +":"▼ ")+foreDelta+"%";
+  foreD.style.color=parseFloat(foreDelta)>=0?"#1B7F49":"#C0392B";
+}
+updateSim();
+
+// ── 코호트 히트맵 (분모 포함) ──
+/* ⚠ SAMPLE — 실제 계산값으로 교체 */
+const cohortMonths=["2024.01","2024.02","2024.03","2024.04","2024.05","2024.06"];
+/* ⚠ SAMPLE — 실제 계산값으로 교체 */
+const cohortSizes=[284,261,238,195,172,148];
+const mLabels=["M0","M1","M2","M3","M4","M5"];
+/* ⚠ SAMPLE — 실제 계산값으로 교체 */
+const cohortData=[
+  [100,72,64,60,58,56],
+  [100,74,67,63,60,null],
+  [100,70,62,58,null,null],
+  [100,75,68,null,null,null],
+  [100,73,null,null,null,null],
+  [100,null,null,null,null,null],
+];
+const INK_TXT="#2B2B30";
+function chColor(v){
+  if(v===null)return{bg:"#F9FAFB",txt:"#E6E2E2"};
+  // 낮을수록 진한 코랄 — 새는 코호트가 먼저 눈에 들어와야 한다
+  if(v>=80)return{bg:"#F7E4E4",txt:INK_TXT};
+  if(v>=70)return{bg:"#EFB3B5",txt:INK_TXT};
+  if(v>=60)return{bg:"#D9565A",txt:"#fff"};
+  if(v>=50)return{bg:"#A83035",txt:"#fff"};
+  return{bg:"#7E2124",txt:"#fff"};
+}
+const hdRow=document.getElementById("cohortHdRow");
+mLabels.forEach(m=>{
+  const s=document.createElement("div");s.className="cohort-hd-cell";s.textContent=m;hdRow.appendChild(s);
+});
+const chWrap=document.getElementById("cohortWrap");
+cohortData.forEach((row,i)=>{
+  const div=document.createElement("div");div.className="cohort-row";
+  const alive=v=>v!==null?Math.round(cohortSizes[i]*v/100):null;
+  div.innerHTML=`<div class="cohort-meta"><div class="cohort-month">${cohortMonths[i].replace("2024.","")+"월"}</div><div class="cohort-size">n=${cohortSizes[i].toLocaleString()}</div></div>`+
+    `<div class="cohort-cells">`+
+    row.map((v,j)=>{
+      const c=chColor(v);
+      const n=alive(v);
+      const title=v!==null?`${cohortMonths[i]} ${mLabels[j]}: ${v}% (${n?.toLocaleString()}명)`:"데이터 없음";
+      return`<div class="cohort-cell" style="background:${c.bg};color:${c.txt}" title="${title}">${v!==null?v+"%":""}</div>`;
+    }).join("")+`</div>`;
+  chWrap.appendChild(div);
+});
+
+// ── 파레토 차트 ──
+/* ⚠ SAMPLE — 실제 계산값으로 교체 */
+const paretoCount={
+  labels:["가격 불만","기능 부족","경쟁사 이탈","사용 불편","예산 삭감","기타"],
+  data:[32,24,18,12,8,6],
+};
+/* ⚠ SAMPLE — 실제 계산값으로 교체 */
+const paretoRevenue={
+  labels:["경쟁사 이탈","예산 삭감","가격 불만","기능 부족","사용 불편","기타"],
+  data:[38,26,18,10,5,3],
+};
+let cumCount=0,cumRevenue=0;
+const cumDataCount=paretoCount.data.map(v=>{cumCount+=v;return cumCount;});
+const cumDataRevenue=paretoRevenue.data.map(v=>{cumRevenue+=v;return cumRevenue;});
+let currentPareto="count";
+
+const parLabelPlugin={id:"pL",afterDatasetsDraw(chart){
+  const{ctx,data,scales:{x,y2}}=chart;
+  const m=chart.getDatasetMeta(1);
+  if(!m)return;
+  m.data.forEach((pt,i)=>{
+    ctx.save();ctx.font="bold 12px 'Pretendard'";ctx.fillStyle=c2;
+    ctx.textAlign="center";ctx.fillText((currentPareto==="count"?cumDataCount:cumDataRevenue)[i]+"%",pt.x,pt.y-5);
+    ctx.restore();
+  });
+}};
+const thresholdPlugin={id:"thresh",afterDraw(chart){
+  const{ctx,scales:{y2},chartArea}=chart;
+  const py=y2.getPixelForValue(80);
+  ctx.save();ctx.strokeStyle="#C0392B";ctx.lineWidth=1;ctx.setLineDash([3,3]);
+  ctx.beginPath();ctx.moveTo(chartArea.left,py);ctx.lineTo(chartArea.right,py);ctx.stroke();
+  ctx.font="11px 'Pretendard'";ctx.fillStyle="#C0392B";ctx.textAlign="right";
+  ctx.fillText("80% 집중 기준",chartArea.right-2,py-3);ctx.restore();
+}};
+
+const paretoCtx=document.getElementById("paretoChart").getContext("2d");
+const paretoChart=new Chart(paretoCtx,{
+  type:"bar",
+  data:{
+    labels:paretoCount.labels,
+    datasets:[
+      {type:"bar",label:"비중(%)",data:paretoCount.data,backgroundColor:["#7E2124","#A83035","#C63B3F","#D9565A","#EFB3B5","#E6E2E2"],borderRadius:3,yAxisID:"y"},
+      {type:"line",label:"누적(%)",data:cumDataCount,borderColor:"#C63B3F",backgroundColor:"transparent",borderWidth:1.5,pointRadius:3,yAxisID:"y2"},
+    ]
+  },
+  plugins:[parLabelPlugin,thresholdPlugin],
+  options:{
+    responsive:true,maintainAspectRatio:false,clip:false,
+    layout:{padding:{top:18}},
+    plugins:{legend:{display:false},tooltip:{backgroundColor:"#2B2B30",callbacks:{label:c=>c.datasetIndex===0?`비중: ${c.raw}%`:`누적: ${c.raw}%`}}},
+    scales:{
+      x:{grid:{display:false},ticks:{font:{size:12}}},
+      y:{grid:{color:"#ECECF0"},ticks:{font:{size:12},callback:v=>v+"%"},max:45},
+      y2:{grid:{display:false},ticks:{font:{size:12},callback:v=>v+"%"},position:"right",max:110}
+    }
+  }
+});
+
+window.switchPareto=function(type,btn){
+  currentPareto=type;
+  document.querySelectorAll(".tab-btn").forEach(b=>b.classList.remove("active"));
+  btn.classList.add("active");
+  const d=type==="count"?paretoCount:paretoRevenue;
+  const cum=type==="count"?cumDataCount:cumDataRevenue;
+  paretoChart.data.labels=d.labels;
+  paretoChart.data.datasets[0].data=d.data;
+  paretoChart.data.datasets[1].data=cum;
+  paretoChart.update();
+};
+
+// ── LTV 분포 ──
+const ltvLabels=["~₩200K","~₩500K","~₩1M","~₩2M","~₩5M","₩5M+"];
+/* ⚠ SAMPLE — 실제 계산값으로 교체 */
+const ltvData=[12,22,34,22,7,3];
+const ltvBarPlugin={id:"ltvL",afterDatasetsDraw(chart){
+  const{ctx,data,scales:{y}}=chart;
+  chart.getDatasetMeta(0).data.forEach((bar,i)=>{
+    ctx.save();ctx.font="bold 12px 'Pretendard'";ctx.fillStyle=c2;
+    ctx.textAlign="center";ctx.fillText(data.datasets[0].data[i]+"%",bar.x,bar.y-5);
+    ctx.restore();
+  });
+}};
+// CAC 대비 최고 구간 표시 (2·3구간)
+const ltvHighlightPlugin={id:"ltvH",afterDraw(chart){
+  const{ctx,chartArea}=chart;
+  const meta=chart.getDatasetMeta(0);
+  if(meta.data.length<4)return;
+  [1,2].forEach(i=>{
+    const bar=meta.data[i];
+    ctx.save();
+    ctx.fillStyle="rgba(198,59,63,.06)";
+    ctx.fillRect(bar.x-bar.width/2-2,chartArea.top,bar.width+4,chartArea.bottom-chartArea.top);
+    ctx.restore();
+  });
+  const b1=meta.data[1],b2=meta.data[2];
+  ctx.save();ctx.font="bold 11px 'Pretendard'";ctx.fillStyle=c1;ctx.textAlign="center";
+  ctx.fillText("LTV 효율 최고",((b1.x+b2.x)/2),chartArea.top+8);ctx.restore();
+}};
+new Chart(document.getElementById("ltvChart").getContext("2d"),{
+  type:"bar",
+  data:{labels:ltvLabels,datasets:[{
+    label:"고객 비중(%)",data:ltvData,
+    backgroundColor:["#D8D8DE","#C63B3F","#C63B3F","#B9BAC1","#D8D8DE","#8A8A94"],borderRadius:4,barThickness:32
+  }]},
+  plugins:[ltvBarPlugin,ltvHighlightPlugin],
+  options:{
+    responsive:true,maintainAspectRatio:false,clip:false,
+    layout:{padding:{top:18}},
+    plugins:{legend:{display:false},tooltip:{backgroundColor:"#2B2B30",callbacks:{label:c=>`고객 비중: ${c.raw}%`}}},
+    scales:{
+      x:{grid:{display:false},ticks:{font:{size:12}}},
+      y:{grid:{color:"#ECECF0"},ticks:{font:{size:12},callback:v=>v+"%"},max:42}
+    }
+  }
+});
+
+// ── AI 인사이트 (영향도+우선순위+액션) ──
+/* ⚠ SAMPLE — 실제 계산값으로 교체 */
+const aiItems=[
+  {
+    idx:"01",title:"이탈 위험 고객 12명 감지",pri:"높음",priBg:"#FBEAE8",priTxt:"#C0392B",
+    cells:[
+      {lbl:"영향 매출",val:"₩28.4M (MRR 10%)"},
+      {lbl:"감지 기준",val:"3개월 로그인 감소"},
+      {lbl:"이탈 확률",val:"AI 예측 82%"},
+      {lbl:"기한",val:"이번 주 내 조치"},
+    ],
+    action:"<b>권장:</b> 스타터 플랜 이탈 위험군 CSM 아웃리치 즉시 시작. 업셀 제안보다 온보딩 점검 우선."
+  },
+  {
+    idx:"02",title:"2024.01 코호트 M6 리텐션 하락",pri:"중간",priBg:"#EDF1F8",priTxt:"#2B2B30",
+    cells:[
+      {lbl:"현재 리텐션",val:"56% (전코호트 최저)"},
+      {lbl:"원인 추정",val:"온보딩 미완료 42%"},
+      {lbl:"Revenue 영향",val:"-₩8.2M 손실"},
+      {lbl:"비교",val:"2024.04 코호트 75%"},
+    ],
+    action:"<b>권장:</b> 온보딩 완료율 기준 세그먼트 분리. 미완료 그룹 인앱 가이드 + 1:1 세션 자동화."
+  },
+  {
+    idx:"03",title:"경쟁사 이탈이 매출 영향 1위",pri:"높음",priBg:"#FBEAE8",priTxt:"#C0392B",
+    cells:[
+      {lbl:"건수 순위",val:"3위 (18%)"},
+      {lbl:"매출 영향",val:"1위 (38%)"},
+      {lbl:"타겟 플랜",val:"비즈니스 이상"},
+      {lbl:"경쟁사",val:"A사 마이그레이션"},
+    ],
+    action:"<b>권장:</b> 비즈니스·엔터프라이즈 플랜 계약 만료 90일 전 Win-back 캠페인 설계. 가격보다 기능 차별화 집중."
+  },
+];
+const aiList=document.getElementById("aiList");
+aiItems.forEach(item=>{
+  const div=document.createElement("div");div.className="ai-item";
+  div.innerHTML=`
+    <div class="ai-item-hd">
+      <div class="ai-idx">${item.idx}</div>
+      <div class="ai-title">${item.title}</div>
+      <span class="ai-pri" style="background:${item.priBg};color:${item.priTxt}">우선순위: ${item.pri}</span>
+    </div>
+    <div class="ai-grid">${item.cells.map(c=>`<div class="ai-cell"><div class="ai-cell-lbl">${c.lbl}</div><div class="ai-cell-val">${c.val}</div></div>`).join("")}</div>
+    <div class="ai-action">${item.action}</div>`;
+  aiList.appendChild(div);
+});
+
+// ── 세그먼트 테이블 ──
+/* ⚠ SAMPLE — 실제 계산값으로 교체 */
+const segments=[
+  {plan:"스타터",customers:284,mrr:"₩28.4M",churnVal:5.2,nrrVal:98,ltv:"₩420K",mom:"-0.3%p",action:"CSM 배정",actionBg:"#FBEAE8",actionTxt:"#C0392B"},
+  {plan:"프로",customers:156,mrr:"₩124.8M",churnVal:2.8,nrrVal:118,ltv:"₩1.82M",mom:"+0.4%p",action:"업셀 캠페인",actionBg:"#E8F5EE",actionTxt:"#1B7F49"},
+  {plan:"비즈니스",customers:62,mrr:"₩93.0M",churnVal:1.4,nrrVal:124,ltv:"₩3.24M",mom:"+0.2%p",action:"유지 강화",actionBg:"#EDF1F8",actionTxt:"#2B2B30"},
+  {plan:"엔터프라이즈",customers:18,mrr:"₩36.0M",churnVal:0.6,nrrVal:131,ltv:"₩8.10M",mom:"+0.1%p",action:"고객 성공팀",actionBg:"#E8F5EE",actionTxt:"#1B7F49"},
+  {plan:"전체 합계",customers:520,mrr:"₩282.2M",churnVal:3.2,nrrVal:112,ltv:"₩1.24M",mom:"+0.1%p",action:null},
+];
+const t=document.getElementById("segTable");
+const maxMRR=284;
+t.innerHTML="<thead><tr>"+
+  "<th style='text-align:left'>플랜</th>"+
+  "<th>고객 수</th>"+
+  "<th>영향 MRR</th>"+
+  "<th>Rev. Churn</th>"+
+  "<th>NRR</th>"+
+  "<th>평균 LTV</th>"+
+  "<th>MoM</th>"+
+  "<th style='text-align:left'>권장 액션</th>"+
+  "</tr></thead>"+
+  "<tbody>"+segments.map((s,i)=>{
+    const isLast=i===segments.length-1;
+    const isDanger=s.churnVal>4;
+    const isWarn=s.churnVal>2&&s.churnVal<=4;
+    const churnColor=isDanger?"#C0392B":isWarn?"#2B2B30":"#1B7F49";
+    const nrrColor=s.nrrVal>=110?"#1B7F49":"#4A4A52";
+    const momColor=s.mom.startsWith("+")?"#1B7F49":"#C0392B";
+    const barW=Math.round((s.customers/520)*52);
+    const churnBarW=Math.round((s.churnVal/6)*48);
+    const mrrNum=parseFloat(s.mrr.replace("₩","").replace("M",""));
+    const mrrBarW=Math.round((mrrNum/maxMRR)*52);
+    const rowClass=isLast?"total-row":isDanger?"row-danger":isWarn?"row-warn":"";
+    const icon=isDanger?`<span class="risk-icon" style="background:#FBEAE8;color:#C0392B">!</span>`:
+                isWarn?`<span class="risk-icon" style="background:#F6F0E2;color:#8A6100">~</span>`:``;
+    return`<tr class="${rowClass}">
+      <td>${icon}${s.plan}</td>
+      <td>
+        <div style="display:flex;align-items:center;gap:7px;justify-content:flex-end">
+          <div style="width:${barW}px;height:5px;background:var(--c1);border-radius:3px;opacity:.7"></div>
+          ${s.customers.toLocaleString()}개
+        </div>
+      </td>
+      <td>
+        <div style="display:flex;align-items:center;gap:7px;justify-content:flex-end">
+          <div style="width:${mrrBarW}px;height:5px;background:var(--c2);border-radius:3px;opacity:.6"></div>
+          <b>${s.mrr}</b>
+        </div>
+      </td>
+      <td>
+        <div class="churn-bar-wrap">
+          <div class="churn-bar-track"><div class="churn-bar-fill" style="width:${churnBarW}px;background:${churnColor};opacity:.8"></div></div>
+          <span style="color:${churnColor};font-weight:700;min-width:39px">${s.churnVal}%</span>
+        </div>
+      </td>
+      <td style="color:${nrrColor};font-weight:${s.nrrVal>=110?700:400}">${s.nrrVal}%</td>
+      <td>${s.ltv}</td>
+      <td style="color:${momColor};font-weight:600">${s.mom}</td>
+      <td style="text-align:left">${s.action?`<span class="action-badge" style="background:${s.actionBg};color:${s.actionTxt}">${s.action}</span>`:""}</td>
+    </tr>`;
+  }).join("")+"</tbody>";
+</script>
+</body>
+</html>

@@ -1,0 +1,736 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=1300">
+<title>A/B 테스트 실험 OS | Analytics</title>
+<link href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard/dist/web/static/pretendard.css" rel="stylesheet">
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+<style>
+*{margin:0;padding:0;box-sizing:border-box}
+svg,canvas{display:block}
+html,body{height:auto!important;overflow:auto!important}
+:root{
+  --bg:#F5F6F8;--card:#FFFFFF;--border:#E6E2E2;
+  --sidebar:#2B2B30;--grid:#ECECF0;
+  --t1:#2B2B30;--t2:#4A4A52;--t3:#6A6A73;--t4:#8A8A94;
+  --c1:#7E2124;--c2:#A83035;--c3:#C63B3F;--c4:#D9565A;--c5:#E66F72;
+  --coral:#F7585C;--navy:#31538F;--navy-l:#6E8CC4;
+  --green:#1B7F49;--red:#C0392B;--amber:#8A6100;
+  --green-bg:#E8F5EE;--red-bg:#FBEAE8;--amber-bg:#F6F0E2;--navy-bg:#EDF1F8;
+  --font:'Pretendard',-apple-system,sans-serif;--r:10px;
+}
+body{font-family:var(--font);background:var(--bg);color:var(--t1);display:flex;min-height:1679px;overflow-y:auto;font-size:15px}
+
+/* SIDEBAR */
+.sidebar{width:202px;background:var(--sidebar);display:flex;flex-direction:column;flex-shrink:0}
+.sb-logo{padding:21px 18px 12px;border-bottom:1px solid rgba(255,255,255,.08)}
+.sb-ic{width:42px;height:38px;background:linear-gradient(135deg,var(--c1),var(--c2));border-radius:8px;display:flex;align-items:center;justify-content:center;margin-bottom:8px}
+.sb-logo .brand{font-size:15px;font-weight:800;color:#fff;letter-spacing:-.2px}
+.sb-logo .sub{font-size:13px;color:rgba(255,255,255,.45);margin-top:1px}
+.sb-nav{flex:1;padding:8px 0}
+.sb-group{font-size:11px;color:rgba(255,255,255,.3);text-transform:uppercase;letter-spacing:.8px;padding:13px 18px 4px}
+.sb-nav a{display:flex;align-items:center;gap:9px;padding:10px 18px;color:rgba(255,255,255,.55);text-decoration:none;font-size:14px;border-left:2px solid transparent;transition:all .15s}
+.sb-nav a:hover{background:rgba(255,255,255,.05);color:rgba(255,255,255,.8)}
+.sb-nav a.active{border-left-color:#C63B3F;background:rgba(74,122,181,.15);color:#fff;font-weight:600}
+.sb-footer{padding:16px 18px;border-top:1px solid rgba(255,255,255,.08);font-size:13px;color:rgba(255,255,255,.35);line-height:1.7}
+
+/* MAIN */
+.main{flex:1;display:flex;flex-direction:column;overflow:visible;min-height:0}
+.topbar{height:60px;display:flex;align-items:center;justify-content:space-between;padding:0 18px;border-bottom:1px solid var(--border);background:var(--card);flex-shrink:0}
+.topbar-left{display:flex;align-items:center;gap:14px}
+.topbar h1{font-size:17px;font-weight:700;color:var(--t1)}
+.exp-badge{background:rgba(42,125,181,.1);color:var(--c1);font-size:12px;font-weight:700;padding:3px 10px;border-radius:20px;border:1px solid rgba(124,58,237,.2)}
+.topbar .meta{font-size:14px;color:var(--t3)}
+.topbar-actions{display:flex;align-items:center;gap:11px}
+.btn-sm{padding:6px 16px;border-radius:6px;font-size:14px;font-weight:600;cursor:pointer;border:none;font-family:var(--font)}
+.btn-primary{background:var(--c1);color:#fff}
+.btn-outline{background:var(--card);color:var(--t2);border:1px solid var(--border)}
+
+.content{padding:13px 18px;display:flex;flex-direction:column;gap:14px;overflow:visible;height:auto}
+
+/* CARD */
+.card{background:var(--card);border:1px solid var(--border);border-radius:var(--r);padding:16px 18px;display:flex;flex-direction:column;overflow:hidden;box-shadow:0 1px 4px rgba(15,23,42,.05)}
+.card-hd{display:flex;align-items:flex-start;gap:11px;margin-bottom:10px;flex-shrink:0}
+.card-num{width:26px;height:24px;border-radius:5px;background:var(--sidebar);color:#fff;font-size:12px;font-weight:700;display:flex;align-items:center;justify-content:center;flex-shrink:0;margin-top:1px;white-space:nowrap}
+.card-title{font-size:15px;font-weight:700;color:var(--t1)}
+.card-sub{font-size:12px;color:var(--t3);margin-top:1px}
+.chart-wrap{position:relative;flex:1;min-height:0;overflow:hidden}
+.chart-wrap canvas{position:absolute;top:0;left:0;width:100%!important;height:100%!important}
+
+/* KPI ROW */
+.row1{display:grid;grid-template-columns:repeat(6,1fr);gap:11px;flex-shrink:0}
+.kpi{background:var(--card);border:1px solid var(--border);border-radius:var(--r);padding:13px 17px;box-shadow:0 1px 4px rgba(15,23,42,.04)}
+.kpi-lbl{font-size:11px;color:var(--t4);text-transform:uppercase;letter-spacing:.6px;margin-bottom:4px}
+.kpi-val{font-size:23px;font-weight:800;color:var(--t1);line-height:1;letter-spacing:-.5px}
+.kpi-sub{display:flex;align-items:center;gap:5px;margin-top:4px;font-size:12px;color:var(--t3)}
+.badge{display:inline-flex;align-items:center;padding:1.5px 6px;border-radius:4px;font-size:11px;font-weight:700;gap:3px}
+.bg{background:var(--green-bg);color:var(--green)}
+.br{background:var(--red-bg);color:var(--red)}
+.bw{background:#EDF1F8;color:var(--t2)}
+.bp{background:#EDF1F8;color:var(--c1)}
+.bc{background:rgba(42,125,181,.08);color:var(--c1)}
+
+
+
+/* ROWS */
+.row2{display:grid;grid-template-columns:1.8fr 1fr;gap:14px;min-height:352px;flex-shrink:0}
+.row2 .card{height:334px}
+.row3{display:grid;grid-template-columns:1.3fr 1fr;gap:14px;height:299px;flex-shrink:0}
+.row3 .card{height:299px}
+.row4{display:grid;grid-template-columns:1fr 2fr;gap:14px;min-height:253px}
+
+/* QUALITY WARNING PANEL */
+.warn-list{display:flex;flex-direction:column;gap:5px;flex:1 1 auto}
+.warn-item{display:flex;align-items:center;gap:11px;padding:6px 12px;border-radius:7px;border:1px solid}
+.warn-item.ok{background:var(--green-bg);border-color:rgba(16,185,129,.2)}
+.warn-item.warn{background:#F5F6F8;border-color:var(--border)}
+.warn-item.error{background:var(--red-bg);border-color:rgba(239,68,68,.2)}
+.warn-item.info{background:#EDF1F8;border-color:rgba(42,125,181,.15)}
+.warn-icon{font-size:16px;flex-shrink:0}
+.warn-body{flex:1}
+.warn-title{font-size:14px;font-weight:700;color:var(--t1)}
+.warn-desc{font-size:12px;color:var(--t3);margin-top:1px}
+.warn-badge{font-size:11px;font-weight:700;padding:1.5px 7px;border-radius:10px;white-space:nowrap;flex-shrink:0}
+
+/* FOREST PLOT */
+.forest-wrap{flex:1;overflow:hidden;position:relative}
+
+/* SEGMENT SCATTER */
+.seg-legend{display:flex;gap:14px;margin-top:4px;flex-shrink:0;flex-wrap:wrap}
+.seg-leg-item{display:flex;align-items:center;gap:5px;font-size:12px;color:var(--t3)}
+.seg-dot{width:8px;height:8px;border-radius:50%;flex-shrink:0}
+
+/* AI INSIGHTS */
+.ai-list{display:flex;flex-direction:column;gap:9px;flex:1;overflow:auto}
+.ai-item{border:1px solid var(--border);border-radius:8px;padding:12px 14px;background:var(--bg)}
+.ai-item-hd{display:flex;align-items:center;gap:8px;margin-bottom:6px}
+.ai-idx{width:26px;height:24px;border-radius:6px;background:var(--sidebar);color:#fff;font-size:12px;font-weight:700;display:flex;align-items:center;justify-content:center;flex-shrink:0;white-space:nowrap}
+.ai-exp{font-size:14px;font-weight:700;color:var(--t1);flex:1}
+.ai-decision{font-size:11px;font-weight:700;padding:3px 10px;border-radius:10px}
+.ai-grid{display:grid;grid-template-columns:1fr 1fr;gap:5px}
+.ai-row{background:var(--card);border-radius:5px;padding:6px 9px;border:1px solid var(--border)}
+.ai-row-lbl{font-size:11px;color:var(--t4);text-transform:uppercase;letter-spacing:.4px;margin-bottom:1px}
+.ai-row-val{font-size:13px;font-weight:600;color:var(--t1)}
+.ai-note{font-size:12px;color:var(--t3);margin-top:5px;line-height:1.5;border-top:1px solid var(--border);padding-top:5px}
+.ai-note b{color:var(--t2)}
+
+/* TABLE */
+.dt{width:100%;border-collapse:collapse;font-size:13px;table-layout:auto}
+.dt th{font-size:11px;font-weight:700;color:var(--t4);text-transform:uppercase;letter-spacing:0;padding:0 5px 6px;border-bottom:1.5px solid var(--border);text-align:right;white-space:nowrap}
+.dt th:first-child,.dt th:nth-child(2){text-align:left}
+.dt td{padding:8px 5px;text-align:right;color:var(--t2);border-bottom:1px solid #ECECF0;white-space:nowrap;vertical-align:middle}
+.dt td:first-child,.dt td:nth-child(2){text-align:left;color:var(--t1)}
+.dt tbody tr:hover{background:#ECECF0}
+.dt tbody tr:last-child td{border-bottom:none}
+.decision-badge{font-size:11px;font-weight:700;padding:3px 9px;border-radius:10px;white-space:nowrap}
+.d-ship{background:#E8F5EE;color:#1B7F49}
+.d-hold{background:#EDF1F8;color:var(--c1)}
+.d-retest{background:#EDF1F8;color:var(--c2)}
+.d-stop{background:#FBEAE8;color:#C0392B}
+.d-monitor{background:#F5F6F8;color:var(--t2)}
+.ci-bar{display:inline-flex;align-items:center;gap:4px}
+.ci-line{height:2px;background:var(--c4);flex:1}
+.ci-dot{width:6px;height:6px;border-radius:50%;background:var(--c1);flex-shrink:0}
+
+/* ── STEP GUIDE ── */
+.step-guide{background:#fff;border:1px solid var(--border);border-radius:var(--r);padding:18px 21px;margin-top:2px;box-shadow:0 1px 4px rgba(15,23,42,.05);flex-shrink:0}
+.step-guide-hd{display:flex;align-items:center;gap:11px;margin-bottom:12px;padding-bottom:10px;border-bottom:1px solid var(--border)}
+.step-guide-title{font-size:15px;font-weight:800;color:var(--t1)}
+.step-guide-sub{font-size:12px;color:var(--t3);margin-top:1px}
+.step-guide-icon{width:36px;height:34px;border-radius:7px;background:var(--sidebar);display:flex;align-items:center;justify-content:center;flex-shrink:0}
+.step-guide-body{display:grid;grid-template-columns:1.4fr 1fr 1.6fr;gap:22px}
+.step-col-title{font-size:12px;font-weight:700;color:var(--t3);text-transform:uppercase;letter-spacing:.7px;margin-bottom:8px}
+.step-flow{display:flex;flex-direction:column;gap:7px}
+.step-flow-item{display:flex;align-items:flex-start;gap:9px}
+.step-fn{width:23px;height:22px;border-radius:4px;background:var(--sidebar);color:#fff;font-size:11px;font-weight:700;display:flex;align-items:center;justify-content:center;flex-shrink:0;margin-top:1px;white-space:nowrap}
+.step-arrow{width:23px;height:22px;display:flex;align-items:center;justify-content:center;color:var(--t4);font-size:13px;flex-shrink:0;white-space:nowrap}
+.step-ft{font-size:13px;color:var(--t2);line-height:1.4}
+.step-ft b{color:var(--t1);font-weight:700}
+.step-iact{display:flex;flex-direction:column;gap:7px}
+.step-iact-item{display:flex;align-items:flex-start;gap:8px;background:var(--bg);border-radius:6px;padding:8px 10px}
+.step-iact-ic{width:21px;height:19px;border-radius:3px;background:var(--c1);display:flex;align-items:center;justify-content:center;flex-shrink:0;margin-top:1px}
+.step-iact-txt{font-size:13px;color:var(--t2);line-height:1.4}
+.step-iact-txt b{color:var(--t1)}
+.step-q{display:flex;flex-direction:column;gap:7px}
+.step-q-item{border-left:2px solid var(--c1);padding:6px 10px;background:var(--bg);border-radius:0 6px 6px 0}
+.step-q-num{font-size:11px;color:var(--c1);font-weight:700;margin-bottom:2px;text-transform:uppercase;letter-spacing:.4px}
+.step-q-txt{font-size:13px;color:var(--t1);font-weight:600;line-height:1.4}
+.step-q-hint{font-size:12px;color:var(--t3);margin-top:2px;line-height:1.4}
+
+</style>
+</head>
+<body>
+
+<div style="display:flex;min-height:100vh">
+<!-- SIDEBAR -->
+<aside class="sidebar">
+  <div class="sb-logo">
+    <div class="sb-ic">
+      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2.2"><path d="M9 19v-6a2 2 0 0 0-2-2H5a2 2 0 0 0-2 2v6a2 2 0 0 0 2 2h2a2 2 0 0 0 2-2zm0 0V9a2 2 0 0 1 2-2h2a2 2 0 0 1 2 2v10m-6 0a2 2 0 0 0 2 2h2a2 2 0 0 0 2-2m0 0V5a2 2 0 0 1 2-2h2a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2h-2a2 2 0 0 1-2-2z"/></svg>
+    </div>
+    <div class="brand">Experiment OS</div>
+    <div class="sub">A/B Testing Console</div>
+  </div>
+  <nav class="sb-nav">
+    <div class="sb-group">Overview</div>
+    <a href="#" class="active">
+      <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="2" y="3" width="20" height="14" rx="2"/></svg>실험 현황
+    </a>
+    <a href="#">
+      <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M22 12h-4l-3 9L9 3l-3 9H2"/></svg>의사결정 큐
+    </a>
+    <div class="sb-group">Analysis</div>
+    <a href="#">
+      <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"/></svg>세그먼트 분석
+    </a>
+    <a href="#">
+      <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/></svg>메트릭 탐색
+    </a>
+    <div class="sb-group">Settings</div>
+    <a href="#">
+      <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 20h9"/><path d="M16.5 3.5a2.121 2.121 0 0 1 3 3L7 19l-4 1 1-4L16.5 3.5z"/></svg>실험 설계
+    </a>
+    <a href="#">
+      <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="3"/><path d="M19.07 4.93a10 10 0 0 1 0 14.14"/></svg>품질 경고
+    </a>
+  </nav>
+  <div class="sb-footer">
+    기준: 2024.Q1<br>
+    Frequentist · α=0.05<br>
+    MDE: 5% relative
+  </div>
+</aside>
+
+<!-- MAIN -->
+<div class="main">
+  <div class="topbar">
+    <div class="topbar-left">
+      <h1>A/B 테스트 실험 OS</h1>
+      <span class="exp-badge">Frequentist · 양측검정 · α=0.05</span>
+    </div>
+    <span class="meta">2024.01.01 – 2024.03.31 · 12개 실험</span>
+    <div class="topbar-actions">
+      <button class="btn-sm btn-outline">CSV 내보내기</button>
+      <button class="btn-sm btn-primary">+ 새 실험</button>
+    </div>
+  </div>
+
+  <div class="content">
+
+    <!-- ⚠ SAMPLE — 아래 수치는 디자인 예시. data/ 실제 계산값으로 교체할 것 -->
+    <!-- ROW 1: 실험 품질 KPI -->
+    <div class="row1">
+      <div class="kpi">
+        <div class="kpi-lbl">Active Experiments</div>
+        <div class="kpi-val">12</div>
+        <div class="kpi-sub"><span class="badge bc">진행중 3</span></div>
+      </div>
+      <div class="kpi">
+        <div class="kpi-lbl">Decision-Ready</div>
+        <div class="kpi-val" style="color:var(--green)">6</div>
+        <div class="kpi-sub"><span class="badge bg">배포 가능</span></div>
+      </div>
+      <div class="kpi">
+        <div class="kpi-lbl">Guardrail Pass Rate</div>
+        <div class="kpi-val">91.7%</div>
+        <div class="kpi-sub"><span class="badge bg">11/12 통과</span></div>
+      </div>
+      <div class="kpi">
+        <div class="kpi-lbl">Risk Alerts</div>
+        <div class="kpi-val" style="color:var(--red)">3</div>
+        <div class="kpi-sub"><span class="badge br">즉시 확인</span></div>
+      </div>
+      <div class="kpi">
+        <div class="kpi-lbl">검증 완료율</div>
+        <div class="kpi-val">75%</div>
+        <div class="kpi-sub"><span class="badge bw">목표 80%</span></div>
+      </div>
+      <div class="kpi">
+        <div class="kpi-lbl">Incremental Revenue</div>
+        <div class="kpi-val">₩42M</div>
+        <div class="kpi-sub"><span class="badge bg">▲ +18.3%</span></div>
+      </div>
+    </div>
+
+    <!-- ROW 2: 누적 Uplift + CI / 품질 경고 -->
+    <div class="row2">
+      <!-- 누적 Uplift with 95% CI -->
+      <div class="card">
+        <div class="card-hd" style="align-items:center">
+          <div class="card-num">1</div>
+          <div style="flex:1">
+            <div class="card-title">누적 전환율 차이 · 95% 신뢰구간</div>
+            <div class="card-sub">일별 노이즈 제거 · 판정 가능 여부 확인용 · 음영=CI 밴드</div>
+          </div>
+          <div style="display:flex;gap:7px;align-items:center">
+            <select id="cumSelA" style="font-size:13px;padding:4px 8px;border-radius:5px;border:1px solid var(--border);background:#fff;color:var(--t2);max-width:136px"></select>
+            <span style="font-size:13px;color:var(--t4)">vs</span>
+            <select id="cumSelB" style="font-size:13px;padding:4px 8px;border-radius:5px;border:1px solid var(--border);background:#fff;color:var(--t2);max-width:136px"></select>
+          </div>
+        </div>
+        <div class="chart-wrap"><canvas id="cumulChart"></canvas></div>
+      </div>
+
+      <!-- ⚠ SAMPLE — 아래 수치는 디자인 예시. data/ 실제 계산값으로 교체할 것 -->
+      <!-- 품질 경고 패널 -->
+      <div class="card">
+        <div class="card-hd">
+          <div class="card-num" style="background:var(--red)">!</div>
+          <div>
+            <div class="card-title">실험 품질 경고</div>
+            <div class="card-sub">SRM · 표본 부족 · Guardrail 악화 · 노벨티 효과</div>
+          </div>
+        </div>
+        <div class="warn-list">
+          <div class="warn-item error">
+            <span class="warn-icon">[!]</span>
+            <div class="warn-body">
+              <div class="warn-title">SRM 감지 — 팝업 타이밍 실험</div>
+              <div class="warn-desc">Control 52.0% / Variant 48.0% · χ²=8.5, p=0.004</div>
+            </div>
+            <span class="warn-badge" style="background:var(--red-bg);color:var(--red)">즉시 중단</span>
+          </div>
+          <div class="warn-item warn">
+            <span class="warn-icon">[-]</span>
+            <div class="warn-body">
+              <div class="warn-title">Guardrail 악화 — 체크아웃 흐름</div>
+              <div class="warn-desc">AOV -₩4,200 (-2.1%) · 95% CI [-4.0%, -0.2%] 유의</div>
+            </div>
+            <span class="warn-badge" style="background:#EDF1F8;color:#2B2B30">모니터링</span>
+          </div>
+          <div class="warn-item warn">
+            <span class="warn-icon">[S]</span>
+            <div class="warn-body">
+              <div class="warn-title">표본 부족 — 추천 위젯</div>
+              <div class="warn-desc">현재 4,200 / 필요 8,000 · 파워 52% (목표 80%)</div>
+            </div>
+            <span class="warn-badge" style="background:#EDF1F8;color:#2B2B30">7일 추가</span>
+          </div>
+          <div class="warn-item info">
+            <span class="warn-icon">[Q]</span>
+            <div class="warn-body">
+              <div class="warn-title">다중 비교 보정 적용</div>
+              <div class="warn-desc">Benjamini-Hochberg · 보정 후 유의 실험 6/12 유지</div>
+            </div>
+            <span class="warn-badge" style="background:#EDF1F8;color:#2B2B30">정상</span>
+          </div>
+          <div class="warn-item ok">
+            <span class="warn-icon">[OK]</span>
+            <div class="warn-body">
+              <div class="warn-title">노벨티 효과 없음 확인</div>
+              <div class="warn-desc">가입 폼 실험 · 14일차 이후 효과 안정 유지 확인</div>
+            </div>
+            <span class="warn-badge" style="background:var(--green-bg);color:var(--green)">검증됨</span>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ROW 3: Forest Plot + 세그먼트 스캐터 -->
+    <div class="row3">
+      <!-- Forest Plot -->
+      <div class="card">
+        <div class="card-hd">
+          <div class="card-num">2</div>
+          <div>
+            <div class="card-title">실험별 효과 크기 · Forest Plot</div>
+            <div class="card-sub">점=추정 uplift · 바=95% CI · 세로선=귀무가설(0)</div>
+          </div>
+        </div>
+        <div class="forest-wrap" id="forestPlot"></div>
+      </div>
+
+      <!-- 세그먼트 스캐터: uplift × significance × sample -->
+      <div class="card">
+        <div class="card-hd">
+          <div class="card-num">3</div>
+          <div>
+            <div class="card-title">세그먼트 분석 · 신뢰도 × 효과 × 표본</div>
+            <div class="card-sub">X=상대 Uplift · Y=통계적 신뢰도 · 원 크기=표본수</div>
+          </div>
+        </div>
+        <div class="chart-wrap"><canvas id="segChart"></canvas></div>
+        <div class="seg-legend">
+          <div class="seg-leg-item"><div class="seg-dot" style="background:var(--green)"></div>Decision-safe</div>
+          <div class="seg-leg-item"><div class="seg-dot" style="background:var(--amber)"></div>Needs validation</div>
+          <div class="seg-leg-item"><div class="seg-dot" style="background:var(--c4)"></div>Low sample</div>
+          <div class="seg-leg-item"><div class="seg-dot" style="background:var(--red)"></div>Exploratory</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ROW 4: AI 인사이트 + 판정 테이블 -->
+    <div class="row4">
+      <!-- AI 인사이트 (근거 포함) -->
+      <div class="card">
+        <div class="card-hd">
+          <div class="card-num">4</div>
+          <div>
+            <div class="card-title">AI 판정 인사이트</div>
+            <div class="card-sub">근거 수치 · 제약 조건 · Rollout 제안 포함</div>
+          </div>
+        </div>
+        <div class="ai-list" id="aiList"></div>
+      </div>
+
+      <!-- 의사결정 테이블 -->
+      <div class="card" style="overflow:auto">
+        <div class="card-hd" style="flex-shrink:0">
+          <div class="card-num">5</div>
+          <div>
+            <div class="card-title">실험 의사결정 테이블</div>
+            <div class="card-sub">Absolute Δ · Relative Uplift · 95% CI · p-value · Guardrail · Decision</div>
+          </div>
+        </div>
+        <div style="overflow:auto;flex:1">
+          <table class="dt" id="decTable"></table>
+        </div>
+      </div>
+    </div>
+
+
+
+  </div>
+</div>
+</div><!-- wrapper -->
+
+<script>
+/* ══════════════════════════════════════════════════════════════════
+   ⚠ SAMPLE DATA — 아래 데이터 블록의 수치는 전부 "디자인용 예시"다.
+   /build-dashboard 실행 시 data/ 의 실제 계산값으로 **전량 교체**한다.
+   · 교체 대상 : forestData · segData · aiItems · tableData
+   · 유지 대상 : decisionColors · statusColors · ciPlugin · zeroLine · segLabelPlugin · CUMEXPS · genCum · srnd · tDecLabel
+   · 필드명·배열 길이·JS 로직은 그대로 두고 **값만** 바꾼다.
+   · Math.random() 등으로 데이터를 생성하지 않는다.
+   ══════════════════════════════════════════════════════════════════ */
+Chart.defaults.font.family="'Pretendard',-apple-system,sans-serif";
+
+// ── 누적 전환율 차이 + CI 밴드 (실험 선택형) ──
+let ci1=[], ci2=[], cumulChartInst=null;
+
+const ciPlugin={
+  id:"ciBand",
+  beforeDatasetsDraw(chart){
+    const{ctx,scales:{x,y},data}=chart;
+    if(!data.datasets[0])return;
+    // Exp1 CI band
+    const d1=data.datasets[0].data;
+    const ci_1=ci1;
+    ctx.save();
+    ctx.fillStyle="rgba(74,122,181,.12)";
+    ctx.beginPath();
+    d1.forEach((v,i)=>{
+      const px=x.getPixelForValue(i);
+      const py=y.getPixelForValue(v+ci_1[i]);
+      i===0?ctx.moveTo(px,py):ctx.lineTo(px,py);
+    });
+    for(let i=d1.length-1;i>=0;i--){
+      const px=x.getPixelForValue(i);
+      const py=y.getPixelForValue(d1[i]-ci_1[i]);
+      ctx.lineTo(px,py);
+    }
+    ctx.closePath();ctx.fill();
+    // Exp2 CI band
+    const d2=data.datasets[1].data;
+    ctx.fillStyle="rgba(124,58,237,.08)";
+    ctx.beginPath();
+    d2.forEach((v,i)=>{
+      const px=x.getPixelForValue(i);
+      const py=y.getPixelForValue(v+ci2[i]);
+      i===0?ctx.moveTo(px,py):ctx.lineTo(px,py);
+    });
+    for(let i=d2.length-1;i>=0;i--){
+      const px=x.getPixelForValue(i);
+      const py=y.getPixelForValue(d2[i]-ci2[i]);
+      ctx.lineTo(px,py);
+    }
+    ctx.closePath();ctx.fill();
+    ctx.restore();
+  }
+};
+const zeroLine={
+  id:"zeroLine",
+  afterDatasetsDraw(chart){
+    const{ctx,scales:{x,y},chartArea}=chart;
+    const py=y.getPixelForValue(0);
+    ctx.save();ctx.strokeStyle="rgba(239,68,68,.5)";ctx.lineWidth=1.2;
+    ctx.setLineDash([4,3]);ctx.beginPath();
+    ctx.moveTo(chartArea.left,py);ctx.lineTo(chartArea.right,py);ctx.stroke();
+    ctx.font="bold 11px 'Pretendard'";ctx.fillStyle="#C0392B";ctx.textAlign="left";
+    ctx.fillText("귀무가설(차이=0)",chartArea.left+4,py-4);
+    ctx.restore();
+  }
+};
+
+// ── FOREST PLOT (SVG 기반) ──
+/* ⚠ SAMPLE — 실제 계산값으로 교체 */
+const forestData=[
+  {name:"가입 폼 간소화",effect:30.8,ci:[22.1,39.5],n:7600,sig:true,decision:"ship"},
+  {name:"소셜증거 배치",effect:31.0,ci:[20.8,41.2],n:11000,sig:true,decision:"ship"},
+  {name:"랜딩 CTA 문구",effect:28.1,ci:[18.4,37.8],n:12400,sig:true,decision:"ship"},
+  {name:"가격 표시 방식",effect:21.4,ci:[11.2,31.6],n:8900,sig:true,decision:"ship"},
+  {name:"메일 제목 A/B",effect:16.5,ci:[8.2,24.8],n:44000,sig:true,decision:"ship"},
+  {name:"버튼 컬러",effect:11.4,ci:[2.8,20.0],n:9800,sig:true,decision:"hold"},
+  {name:"이미지 A/B",effect:12.2,ci:[3.1,21.3],n:15200,sig:true,decision:"hold"},
+  {name:"팝업 타이밍",effect:16.7,ci:[4.1,29.3],n:5500,sig:false,decision:"retest"},
+  {name:"체크아웃 흐름",effect:22.9,ci:[-2.4,48.2],n:3800,sig:false,decision:"monitor"},
+  {name:"추천 위젯",effect:16.1,ci:[-3.8,36.0],n:4200,sig:false,decision:"monitor"},
+  {name:"챗봇 위치",effect:5.6,ci:[-4.2,15.4],n:6200,sig:false,decision:"stop"},
+  {name:"리뷰 노출 위치",effect:3.7,ci:[-6.1,13.5],n:2100,sig:false,decision:"stop"},
+];
+const decisionColors={ship:"#1B7F49",hold:"#31538F",retest:"#6E8CC4",monitor:"#8A8A94",stop:"#C63B3F"};
+const fp=document.getElementById("forestPlot");
+const W=fp.clientWidth||580,H=fp.clientHeight||200;
+const marginL=150,marginR=86,plotW=W-marginL-marginR;   // marginR = 우측 값 열
+const AXIS_H=22;                                         // 하단 축 전용 밴드
+const rowH=(H-10-AXIS_H)/(forestData.length);
+const minE=-10,maxE=55;
+const toX=v=>marginL+(v-minE)/(maxE-minE)*plotW;
+const plotBottom=H-AXIS_H+2;
+
+// ① 배경 레이어 — 격자선·0선을 먼저 그려 데이터·라벨 뒤로 보낸다
+let svgBg="";
+[-10,0,10,20,30,40,50].forEach(v=>{
+  const px=toX(v);
+  if(v!==0)svgBg+=`<line x1="${px}" y1="2" x2="${px}" y2="${plotBottom}" stroke="#ECECF0" stroke-width="1"/>`;
+});
+svgBg+=`<line x1="${toX(0)}" y1="2" x2="${toX(0)}" y2="${plotBottom}" stroke="#C0392B" stroke-width="1" stroke-dasharray="3,3" opacity=".7"/>`;
+
+// ② 데이터 레이어
+let svgRows="";
+forestData.forEach((d,i)=>{
+  const y=8+i*rowH+rowH/2;
+  const cx=toX(d.effect), lx=toX(d.ci[0]), rx=toX(d.ci[1]);
+  const col=d.sig?decisionColors[d.decision]:"#8A8A94";
+  const op=d.sig?1:.5;
+  svgRows+=`
+    <text x="${marginL-10}" y="${y+4}" font-size="12" fill="#4A4A52" text-anchor="end" font-family="Pretendard">${d.name}</text>
+    <line x1="${lx}" y1="${y}" x2="${rx}" y2="${y}" stroke="${col}" stroke-width="${d.sig?1.8:1.2}" opacity="${op}"/>
+    <line x1="${lx}" y1="${y-4}" x2="${lx}" y2="${y+4}" stroke="${col}" stroke-width="1.2" opacity="${op}"/>
+    <line x1="${rx}" y1="${y-4}" x2="${rx}" y2="${y+4}" stroke="${col}" stroke-width="1.2" opacity="${op}"/>
+    <circle cx="${cx}" cy="${y}" r="${d.sig?5:4}" fill="${col}" opacity="${d.sig?1:.6}"/>
+    <text x="${W-marginR+14}" y="${y+4}" font-size="12" fill="${col}" font-weight="700" font-family="Pretendard">${d.effect>0?"+":""}${d.effect.toFixed(1)}%</text>
+  `;
+});
+
+// ③ 축 레이어 — 플롯과 분리된 하단 밴드
+let svgAxis=`<line x1="${marginL}" y1="${plotBottom}" x2="${W-marginR}" y2="${plotBottom}" stroke="#E6E2E2" stroke-width="1"/>`;
+[-10,0,10,20,30,40,50].forEach(v=>{
+  svgAxis+=`<text x="${toX(v)}" y="${H-6}" font-size="11" fill="#8A8A94" text-anchor="middle" font-family="Pretendard">${v>0?"+":""}${v}%</text>`;
+});
+svgAxis+=`<text x="${W-marginR+14}" y="${H-6}" font-size="11" fill="#8A8A94" font-family="Pretendard">uplift</text>`;
+
+fp.innerHTML=`<svg width="100%" height="100%" viewBox="0 0 ${W} ${H}" preserveAspectRatio="xMidYMid meet">${svgBg}${svgRows}${svgAxis}</svg>`;
+
+// ── 세그먼트 스캐터: X=uplift, Y=confidence%, size=sample ──
+/* ⚠ SAMPLE — 실제 계산값으로 교체 */
+const segData=[
+  {x:30.8,y:96,r:10,label:"모바일·2030",status:"safe"},
+  {x:33.0,y:94,r:11,label:"신규방문·전체",status:"safe"},
+  {x:28.1,y:95,r:12,label:"PC·3040",status:"safe"},
+  {x:16.5,y:93,r:18,label:"이메일·전체",status:"safe"},
+  {x:12.2,y:86,r:13,label:"PC·4050",status:"needs"},
+  {x:22.9,y:88,r:8,label:"모바일·1020",status:"needs"},
+  {x:16.1,y:80,r:7,label:"태블릿·전체",status:"low"},
+  {x:5.6,y:58,r:6,label:"재방문자",status:"low"},
+  {x:3.7,y:49,r:5,label:"해외 방문",status:"explore"},
+];
+const statusColors={safe:"#1B7F49",needs:"#31538F",low:"#6E8CC4",explore:"#C63B3F"};
+const segLabelPlugin={id:"sL",afterDraw(chart){
+  const{ctx,scales:{x,y},chartArea}=chart;
+  const placed=[];                                   // 이미 그린 라벨 상자 — 겹침 회피용
+  const hit=(a)=>placed.some(b=>!(a.r<b.l||a.l>b.r||a.b<b.t||a.t>b.b));
+  ctx.save();
+  ctx.font="bold 12px 'Pretendard'";
+  ctx.textAlign="center";
+  ctx.lineWidth=3; ctx.lineJoin="round";
+  chart.data.datasets.forEach(ds=>{
+    ds.data.forEach(pt=>{
+      if(!pt.label)return;
+      const px=x.getPixelForValue(pt.x), py=y.getPixelForValue(pt.y);
+      const w=ctx.measureText(pt.label).width, h=14, off=pt.r+12;
+      const fx=px+w/2>chartArea.right ? chartArea.right-w/2-2
+             : px-w/2<chartArea.left ? chartArea.left+w/2+2 : px;
+      // 위 → 아래 → 더 아래 순으로 빈 자리를 찾는다
+      let fy=null;
+      for(const cand of [py-off, py+off+8, py-off-16, py+off+24]){
+        if(cand<chartArea.top+10||cand>chartArea.bottom-4) continue;
+        const box={l:fx-w/2-2,r:fx+w/2+2,t:cand-h,b:cand+3};
+        if(!hit(box)){ fy=cand; placed.push(box); break; }
+      }
+      if(fy===null) return;                          // 자리가 없으면 생략(겹쳐 그리지 않는다)
+      ctx.strokeStyle="rgba(255,255,255,.95)";       // 흰 외곽선 → 어떤 배경에서도 읽힘
+      ctx.strokeText(pt.label,fx,fy);
+      ctx.fillStyle="#2B2B30";
+      ctx.fillText(pt.label,fx,fy);
+    });
+  });
+  ctx.restore();
+}};
+new Chart(document.getElementById("segChart").getContext("2d"),{
+  type:"bubble",
+  data:{datasets:[{
+    data:segData.map(d=>({x:d.x,y:d.y,r:d.r,label:d.label})),
+    backgroundColor:segData.map(d=>statusColors[d.status]+"BB"),
+    borderColor:segData.map(d=>statusColors[d.status]),
+    borderWidth:1.5,
+    clip:false
+  }]},
+  plugins:[segLabelPlugin],
+  options:{
+    responsive:true,maintainAspectRatio:false,
+    clip:false,
+    layout:{padding:{top:28,bottom:8,left:10,right:55}},
+    plugins:{legend:{display:false},tooltip:{backgroundColor:"#2B2B30",callbacks:{
+      label:c=>`Uplift: +${c.parsed.x}% | 신뢰도: ${c.parsed.y}% | n≈${c.raw.r*500}`
+    }}},
+    scales:{
+      x:{grid:{color:"#ECECF0"},ticks:{font:{size:12},callback:v=>"+"+v+"%"},title:{display:true,text:"Relative Uplift",font:{size:12},color:"#8A8A94"},min:-8,max:42},
+      y:{grid:{color:"#ECECF0"},ticks:{font:{size:12},callback:v=>v+"%"},title:{display:true,text:"통계적 신뢰도 (%)",font:{size:12},color:"#8A8A94"},min:38,max:105}
+    }
+  }
+});
+
+// ── AI 인사이트 (근거+제약+액션) ──
+/* ⚠ SAMPLE — 실제 계산값으로 교체 */
+const aiItems=[
+  {
+    idx:"01",name:"가입 폼 간소화",decision:"Ship",decClass:"d-ship",
+    metric:{primary:"CVR +30.8%",ci:"95% CI [22.1%, 39.5%]",pval:"p < 0.001",n:"N=7,600"},
+    constraint:"모바일 전체 유효 · PC에서 +8.2%로 약함",
+    risk:"AOV 변화 없음 · Guardrail 통과 [OK]",
+    action:"모바일 전체 100% 즉시 배포 · PC는 별도 실험"
+  },
+  {
+    idx:"02",name:"소셜증거 배치 변경",decision:"Ship",decClass:"d-ship",
+    metric:{primary:"CVR +31.0%",ci:"95% CI [20.8%, 41.2%]",pval:"p < 0.001",n:"N=11,000"},
+    constraint:"신규 방문자에서만 강함 · 재방문자 효과 +3.1% (미유의)",
+    risk:"환불률 +0.4% · 유의하지 않음 [OK]",
+    action:"히어로 섹션 위 배치 확정 · 재방문자는 별도 세그먼트 처리"
+  },
+  {
+    idx:"03",name:"체크아웃 흐름",decision:"Hold",decClass:"d-hold",
+    metric:{primary:"CVR +22.9%",ci:"95% CI [-2.4%, 48.2%]",pval:"p = 0.07",n:"N=3,800"},
+    constraint:"표본 부족 — 파워 52% (목표 80%). 7일 추가 필요",
+    risk:"⚠ AOV -₩4,200 (-2.1%) 유의 감소 · Guardrail 실패",
+    action:"표본 수집 7일 연장 + AOV 하락 원인 분석 후 재판정"
+  },
+];
+const aiList=document.getElementById("aiList");
+aiItems.forEach(item=>{
+  const div=document.createElement("div");div.className="ai-item";
+  div.innerHTML=`
+    <div class="ai-item-hd">
+      <div class="ai-idx">${item.idx}</div>
+      <div class="ai-exp">${item.name}</div>
+      <span class="decision-badge ${item.decClass}">${item.decision}</span>
+    </div>
+    <div class="ai-grid">
+      <div class="ai-row"><div class="ai-row-lbl">Primary Metric</div><div class="ai-row-val">${item.metric.primary}</div></div>
+      <div class="ai-row"><div class="ai-row-lbl">95% CI</div><div class="ai-row-val">${item.metric.ci}</div></div>
+      <div class="ai-row"><div class="ai-row-lbl">p-value</div><div class="ai-row-val">${item.metric.pval}</div></div>
+      <div class="ai-row"><div class="ai-row-lbl">Sample Size</div><div class="ai-row-val">${item.metric.n}</div></div>
+    </div>
+    <div class="ai-note">
+      <b>제약:</b> ${item.constraint}<br>
+      <b>리스크:</b> ${item.risk}<br>
+      <b>액션:</b> ${item.action}
+    </div>`;
+  aiList.appendChild(div);
+});
+
+// ── 의사결정 테이블 ──
+/* ⚠ SAMPLE — 실제 계산값으로 교체 */
+const tableData=[
+  {exp:"가입 폼 간소화",metric:"CVR",ctrl:"5.20%",variant:"6.80%",abs:"+1.60%p",rel:"+30.8%",ci:"[+22.1%, +39.5%]",pval:"<0.001",n:"7,600",runtime:"21일",guardrail:"통과",decision:"ship"},
+  {exp:"소셜증거 배치",metric:"CVR",ctrl:"2.90%",variant:"3.80%",abs:"+0.90%p",rel:"+31.0%",ci:"[+20.8%, +41.2%]",pval:"<0.001",n:"11,000",runtime:"18일",guardrail:"통과",decision:"ship"},
+  {exp:"랜딩 CTA 문구",metric:"CVR",ctrl:"3.20%",variant:"4.10%",abs:"+0.90%p",rel:"+28.1%",ci:"[+18.4%, +37.8%]",pval:"<0.001",n:"12,400",runtime:"24일",guardrail:"통과",decision:"ship"},
+  {exp:"가격 표시 방식",metric:"CVR",ctrl:"2.80%",variant:"3.40%",abs:"+0.60%p",rel:"+21.4%",ci:"[+11.2%, +31.6%]",pval:"<0.001",n:"8,900",runtime:"19일",guardrail:"통과",decision:"ship"},
+  {exp:"메일 제목 A/B",metric:"Open Rate",ctrl:"22.4%",variant:"26.1%",abs:"+3.70%p",rel:"+16.5%",ci:"[+8.2%, +24.8%]",pval:"<0.001",n:"44,000",runtime:"14일",guardrail:"통과",decision:"ship"},
+  {exp:"버튼 컬러",metric:"CVR",ctrl:"3.50%",variant:"3.90%",abs:"+0.40%p",rel:"+11.4%",ci:"[+2.8%, +20.0%]",pval:"0.012",n:"9,800",runtime:"21일",guardrail:"통과",decision:"hold"},
+  {exp:"체크아웃 흐름",metric:"CVR",ctrl:"4.80%",variant:"5.90%",abs:"+1.10%p",rel:"+22.9%",ci:"[-2.4%, +48.2%]",pval:"0.070",n:"3,800",runtime:"12일",guardrail:"❌ AOV↓",decision:"monitor"},
+  {exp:"팝업 타이밍",metric:"CVR",ctrl:"1.20%",variant:"1.40%",abs:"+0.20%p",rel:"+16.7%",ci:"[+4.1%, +29.3%]",pval:"0.038",n:"5,500",runtime:"16일",guardrail:"⚠ SRM",decision:"retest"},
+  {exp:"추천 위젯",metric:"CVR",ctrl:"3.10%",variant:"3.60%",abs:"+0.50%p",rel:"+16.1%",ci:"[-3.8%, +36.0%]",pval:"0.142",n:"4,200",runtime:"10일",guardrail:"통과",decision:"monitor"},
+  {exp:"챗봇 위치",metric:"참여율",ctrl:"1.80%",variant:"1.90%",abs:"+0.10%p",rel:"+5.6%",ci:"[-4.2%, +15.4%]",pval:"0.260",n:"6,200",runtime:"28일",guardrail:"통과",decision:"stop"},
+  {exp:"이미지 A/B",metric:"CTR",ctrl:"4.10%",variant:"4.60%",abs:"+0.50%p",rel:"+12.2%",ci:"[+3.1%, +21.3%]",pval:"0.021",n:"15,200",runtime:"18일",guardrail:"통과",decision:"hold"},
+  {exp:"리뷰 노출",metric:"CVR",ctrl:"2.70%",variant:"2.80%",abs:"+0.10%p",rel:"+3.7%",ci:"[-6.1%, +13.5%]",pval:"0.430",n:"2,100",runtime:"28일",guardrail:"통과",decision:"stop"},
+];
+/* ── 누적 전환율 차이: 실험 선택형 ── */
+const CUMEXPS = tableData.map(r=>{
+  const D=parseFloat(r.abs)/100;
+  const m=String(r.ci).match(/([-+\d.]+)%,\s*([-+\d.]+)%/);
+  const relHalf=m?(parseFloat(m[2])-parseFloat(m[1]))/2:10;
+  const rel=Math.abs(parseFloat(r.rel))||30;
+  const ciH=Math.max(Math.abs(D)*relHalf/rel, 0.0008);
+  const T=parseInt(r.runtime)||21;
+  return {name:r.exp, D, ciH, T};
+});
+function srnd(s){const x=Math.sin(s*91.7)*1e4;return x-Math.floor(x);}
+function genCum(D,ciH,T){return Array.from({length:T},(_,i)=>{
+  const settle=D*(1-Math.exp(-(i+1)/(T*0.32)));
+  const noise=(srnd((i+1)*(Math.abs(D)*1e5+13))-.5)*ciH*1.3/Math.sqrt(i+1);
+  return +(settle+noise).toFixed(4);});}
+function genCI(ciH,T){return Array.from({length:T},(_,i)=>+(ciH*Math.sqrt(T/(i+1))).toFixed(4));}
+const cuA=document.getElementById("cumSelA"), cuB=document.getElementById("cumSelB");
+cuA.innerHTML=CUMEXPS.map((e,i)=>`<option value="${i}"${i===0?' selected':''}>${e.name}</option>`).join("");
+cuB.innerHTML=CUMEXPS.map((e,i)=>`<option value="${i}"${i===1?' selected':''}>${e.name}</option>`).join("");
+function renderCumul(){
+  const a=CUMEXPS[+cuA.value], b=CUMEXPS[+cuB.value];
+  const T=Math.max(a.T,b.T);
+  const labels=Array.from({length:T},(_,i)=>(i+1)+"일");
+  ci1=genCI(a.ciH,a.T); ci2=genCI(b.ciH,b.T);
+  const d1=genCum(a.D,a.ciH,a.T), d2=genCum(b.D,b.ciH,b.T);
+  if(cumulChartInst){
+    cumulChartInst.data.labels=labels;
+    cumulChartInst.data.datasets[0].data=d1; cumulChartInst.data.datasets[0].label=a.name;
+    cumulChartInst.data.datasets[1].data=d2; cumulChartInst.data.datasets[1].label=b.name;
+    cumulChartInst.update();
+  } else {
+    cumulChartInst=new Chart(document.getElementById("cumulChart").getContext("2d"),{
+      type:"line",
+      data:{labels,datasets:[
+        {label:a.name,data:d1,borderColor:"#C63B3F",backgroundColor:"transparent",borderWidth:2,pointRadius:0,tension:.3},
+        {label:b.name,data:d2,borderColor:"#7C3AED",backgroundColor:"transparent",borderWidth:1.8,pointRadius:0,tension:.3,borderDash:[4,3]},
+      ]},
+      plugins:[ciPlugin,zeroLine],
+      options:{responsive:true,maintainAspectRatio:false,
+        plugins:{legend:{position:"bottom",labels:{boxWidth:8,font:{size:13},padding:8}},
+          tooltip:{backgroundColor:"#2B2B30",mode:"index",intersect:false,callbacks:{
+            label:c=>`${c.dataset.label}: +${(c.raw*100).toFixed(2)}%p (±${(((c.datasetIndex===0?ci1:ci2)[c.dataIndex]||0)*100).toFixed(2)}%p)`}}},
+        scales:{x:{grid:{color:"#ECECF0"},ticks:{font:{size:12},maxTicksLimit:8}},
+          y:{grid:{color:"#ECECF0"},ticks:{font:{size:12},callback:v=>(v*100).toFixed(1)+"%p"},
+            title:{display:true,text:"누적 전환율 차이 (Variant − Control)",font:{size:12},color:"#8A8A94"}}}}
+    });
+  }
+}
+cuA.onchange=renderCumul; cuB.onchange=renderCumul; renderCumul();
+
+const tDecLabel={ship:"Ship",hold:"Hold",retest:"Re-test",monitor:"Monitor",stop:"Stop"};
+const t=document.getElementById("decTable");
+t.innerHTML="<thead><tr>"+
+  "<th>실험명</th><th>Metric</th><th>Control</th><th>Variant</th>"+
+  "<th>Absolute Δ</th><th>Relative Uplift</th><th>95% CI</th>"+
+  "<th>p-value</th><th>N</th><th>기간</th><th>Guardrail</th><th>Decision</th>"+
+  "</tr></thead><tbody>"+
+  tableData.map(r=>{
+    const isPos=r.rel.startsWith("+");
+    const gOk=r.guardrail==="통과";
+    return`<tr>
+      <td style="font-size:13px">${r.exp}</td>
+      <td><span style="background:#ECECF0;color:#4A4A52;padding:1px 6px;border-radius:3px;font-size:12px;font-weight:600">${r.metric}</span></td>
+      <td>${r.ctrl}</td>
+      <td style="color:${isPos?"#1B7F49":"#C0392B"};font-weight:600">${r.variant}</td>
+      <td style="color:${isPos?"#1B7F49":"#C0392B"};font-weight:700">${r.abs}</td>
+      <td style="color:${isPos?"#1B7F49":"#C0392B"};font-weight:700">${r.rel}</td>
+      <td style="font-size:13px;color:#6A6A73">${r.ci}</td>
+      <td style="font-weight:700;color:${parseFloat(r.pval)<0.05?"#1B7F49":"#6A6A73"}">${r.pval}</td>
+      <td style="color:#6A6A73">${r.n}</td>
+      <td style="color:#6A6A73">${r.runtime}</td>
+      <td style="color:${gOk?"#1B7F49":"#C0392B"};font-weight:600">${r.guardrail}</td>
+      <td><span class="decision-badge d-${r.decision}">${tDecLabel[r.decision]}</span></td>
+    </tr>`;
+  }).join("")+"</tbody>";
+</script>
+</body>
+</html>

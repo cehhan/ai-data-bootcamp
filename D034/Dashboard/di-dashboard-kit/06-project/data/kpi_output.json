@@ -1,0 +1,42 @@
+﻿{
+    "dateRange":  {
+                      "start":  "2023-01-03",
+                      "end":  "2026-12-30"
+                  },
+    "chData":  [
+                   {
+                       "ch":  "Technology",
+                       "orders":  1560,
+                       "ordersReturned":  156,
+                       "profit":  146543.37,
+                       "discountAvg":  0.1315,
+                       "sales":  839893.28
+                   },
+                   {
+                       "ch":  "Office Supplies",
+                       "orders":  3812,
+                       "ordersReturned":  473,
+                       "profit":  126023.44,
+                       "discountAvg":  0.1563,
+                       "sales":  731893.31
+                   },
+                   {
+                       "ch":  "Furniture",
+                       "orders":  1819,
+                       "ordersReturned":  171,
+                       "profit":  19730,
+                       "discountAvg":  0.173,
+                       "sales":  754747.76
+                   }
+               ],
+    "totals":  {
+                   "totalOrders":  7191,
+                   "totalProfit":  292296.81,
+                   "totalSales":  2326534.35,
+                   "totalReturned":  800
+               },
+    "regression":  {
+                       "slope":  -0.953805,
+                       "intercept":  0.324567
+                   }
+}
