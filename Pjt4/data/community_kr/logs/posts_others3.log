@@ -1,0 +1,25 @@
+ruliweb: 2035 posts to fetch
+  ruliweb 0/2035 comments=10 [정보] 아이폰 듀오 앱제작 가이드 영향으로 폴드도 피
+  HTTP 404 https://bbs.ruliweb.com/community/board/300143/read/77204568
+  HTTP 404 https://bbs.ruliweb.com/community/board/300143/read/77204568
+  HTTP 404 https://bbs.ruliweb.com/community/board/300143/read/77204568
+  ruliweb 25/2035 comments=0 [잡담] 아이폰) 아이폰 듀오 너무 좋다
+  ruliweb 50/2035 comments=59 [인방] 아이폰) 듀오 a/s 받으러 간 유투바 근황.
+  ruliweb 75/2035 comments=67 [유머] 애플 스토어 매장 아이폰 듀오
+  ruliweb 100/2035 comments=7 [유머] 아이폰 듀오를 사야하는 이유
+  ruliweb 125/2035 comments=2 [잡담] 아이폰 듀오 관련 괜찮다 싶던 서드파티 앱
+  ruliweb 150/2035 comments=2 [잡담] 듀오 문젠지 아이폰 문젠지 수화부 지지직 거리
+  ruliweb 175/2035 comments=4 [잡담] 유게에서 핫한 떡밥이 이거 맞음?
+  ruliweb 200/2035 comments=6 [잡담] 아이폰 듀오는 320만원임
+  ruliweb 225/2035 comments=0 [유머] 애플 1세대 거르라는 건 애플 팬들도 하는 말
+  ruliweb 250/2035 comments=8 [유머] 듀오)아이폰 듀오 2026년 최고의 발명품 선
+  ruliweb 275/2035 comments=43 [자작유머] 폰 똥믈리에 인증 .jpg
+  ruliweb 300/2035 comments=51 [유머] 아이폰 듀오 유튜버들 폭탄 지리네ㅋㅋㅋㅋㅋ
+  ruliweb 325/2035 comments=5 [유머] 아이폰 듀오를 보아하니..
+  ERR HTTPSConnectionPool(host='bbs.ruliweb.com', port=443): Read timed out. (read timeout=20)
+  ERR HTTPSConnectionPool(host='bbs.ruliweb.com', port=443): Max retries exceeded with url: /community/board/300143/read/77165247 (Caused by ConnectTimeoutError(<urllib3.connection.HTTPSConnection object at 0x000001F9B1B6E710>, 'Connection to bbs.ruliweb.com timed out. (connect timeout=20)'))
+  ERR HTTPSConnectionPool(host='bbs.ruliweb.com', port=443): Max retries exceeded with url: /community/board/300143/read/77165247 (Caused by ConnectTimeoutError(<urllib3.connection.HTTPSConnection object at 0x000001F9B1B6DA90>, 'Connection to bbs.ruliweb.com timed out. (connect timeout=20)'))
+  ERR HTTPSConnectionPool(host='bbs.ruliweb.com', port=443): Max retries exceeded with url: /community/board/300143/read/77165229 (Caused by ConnectTimeoutError(<urllib3.connection.HTTPSConnection object at 0x000001F9B1B6D1D0>, 'Connection to bbs.ruliweb.com timed out. (connect timeout=20)'))
+  ERR HTTPSConnectionPool(host='bbs.ruliweb.com', port=443): Max retries exceeded with url: /community/board/300143/read/77165229 (Caused by ConnectTimeoutError(<urllib3.connection.HTTPSConnection object at 0x000001F9B1B6D810>, 'Connection to bbs.ruliweb.com timed out. (connect timeout=20)'))
+  ERR HTTPSConnectionPool(host='bbs.ruliweb.com', port=443): Max retries exceeded with url: /community/board/300143/read/77165229 (Caused by ConnectTimeoutError(<urllib3.connection.HTTPSConnection object at 0x000001F9B1B6CE10>, 'Connection to bbs.ruliweb.com timed out. (connect timeout=20)'))
+  ERR HTTPSConnectionPool(host='bbs.ruliweb.com', port=443): Max retries exceeded with url: /community/board/300143/read/77164196 (Caused by NameResolutionError("<urllib3.connection.HTTPSConnection object at 0x000001F9B1B6DBD0>: Failed to resolve 'bbs.ruliweb.com' ([Errno 11001] getaddrinfo failed)"))

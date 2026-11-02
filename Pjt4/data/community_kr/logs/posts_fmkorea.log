@@ -1,0 +1,17 @@
+fmkorea: 127 posts to fetch
+  fmkorea 0/127 comments=83 포텐 아이폰 듀오 중고 되팔렘들 근황 ㅋㅋㅋㅋㅋ
+  fmkorea 25/127 comments=50 포텐 아이폰 듀오 사진앱 최적화 논란 팩트체크 해봤다
+  fmkorea 50/127 comments=74 포텐 아이폰 듀오 화면 주름이 보이지 않는 이유 ㅋㅋㅋ
+  fmkorea 75/127 comments=48 포텐 싱글벙글 아이폰 듀오 근황
+  fmkorea 100/127 comments=47 포텐 아이폰 듀오 일본 반응 웃기네 ㅋㅋ
+  fmkorea 125/127 comments=42 포텐 [2026년 9월 애플 이벤트] 아이폰 듀오 (폴
+fmkorea_digital: 1333 posts to fetch
+  fmkorea_digital 0/1333 comments=9 아이폰 듀오는 없는데
+  fmkorea_digital 25/1333 comments=17 아이폰 듀오 실사용자인데
+  HTTP 430 https://www.fmkorea.com/10494895105
+  HTTP 430 https://www.fmkorea.com/10494895105
+  HTTP 430 https://www.fmkorea.com/10494895105
+  HTTP 430 https://www.fmkorea.com/10494894535
+  HTTP 430 https://www.fmkorea.com/10494894535
+  fmkorea_digital 50/1333 comments=11 애플이 그래도 아직까지 최악은 아니긴 한게
+  ERR HTTPSConnectionPool(host='www.fmkorea.com', port=443): Max retries exceeded with url: /10490802766 (Caused by NameResolutionError("<urllib3.connection.HTTPSConnection object at 0x000001E84449D6A0>: Failed to resolve 'www.fmkorea.com' ([Errno 11001] getaddrinfo failed)"))

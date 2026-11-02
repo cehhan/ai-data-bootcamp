@@ -1,0 +1,23 @@
+region,site,product_page,status,review_count,avg_rating,note
+KR,다나와,https://prod.danawa.com/info/?pcode=124154491,ok,1,5.0,256GB 자급제 (다나와 의견)
+KR,다나와,https://prod.danawa.com/info/?pcode=124469371,ok,1,5.0,512GB 자급제
+KR,다나와,https://prod.danawa.com/info/?pcode=124469400,ok,1,5.0,2TB 자급제
+KR,다나와,https://prod.danawa.com/info/?pcode=124469391,ok,0,,1TB 자급제
+KR,다나와,(통신사 완납 모델 9종),ok,0,,SKT/KT/U+ 기기변경·번호이동
+KR,11번가,(다나와 판매처 연결),fetch_blocked,,,"판매 확인(다나와 판매처 목록), 리뷰 수 미확인"
+KR,G마켓/옥션,(다나와 판매처 연결),not_checked,,,"판매 확인(다나와 판매처 목록), 리뷰 수 미확인"
+KR,롯데ON,(다나와 판매처 연결),not_checked,,,판매 확인
+KR,더현대닷컴,(다나와 판매처 연결),not_checked,,,판매 확인 (최저가 329만원)
+KR,롯데홈쇼핑,(다나와 판매처 연결),not_checked,,,판매 확인
+KR,네이버 스마트스토어,(다나와 판매처 연결),not_checked,,,개인 판매자(제이씨엠컴퍼니·얼리텍 등) - 웃돈/해외구매
+KR,쿠팡,https://www.coupang.com/np/search?q=아이폰+듀오,fetch_blocked,,,403 차단
+KR,T다이렉트샵,https://shop.tworld.co.kr/,fetch_blocked,,,JS 렌더링 페이지 - 내용 미수신
+KR,KT닷컴,https://shop.kt.com/display/olhsPlan.do?plnDispNo=2845,no_reviews_seen,,,사전예약 기획전 페이지 - 후기 섹션 없음
+KR,LG U+,https://www.lguplus.com/mobile/device/phone,fetch_blocked,,,JS 렌더링 페이지 - 내용 미수신
+US,AT&T,https://www.att.com/buy/phones/apple-iphone-duo.html,ok,6,3.66,
+US,Best Buy,https://www.bestbuy.com/product/apple-iphone-duo-512gb-night-sky-verizon/JCQ6HQT4XW,ok,1,5.0,Verizon 512GB Night Sky
+US,Best Buy,https://www.bestbuy.com/product/apple-iphone-duo-256gb-star-white-verizon/JCQ6HQT43Z,ok,1,5.0,Verizon 256GB Star White
+US,Verizon,https://www.verizon.com/smartphones/apple-iphone-duo/,fetch_blocked,,,HTTP 417
+US,T-Mobile,https://www.t-mobile.com/cell-phone/apple-iphone-duo,fetch_blocked,,,HTTP 403
+US,Walmart,https://www.walmart.com/search?q=iphone+duo,fetch_blocked,,,봇 확인 화면
+US,Amazon,https://www.amazon.com/s?k=apple+iphone+duo,fetch_blocked,,,HTTP 503

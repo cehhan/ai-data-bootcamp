@@ -1,0 +1,51 @@
+# 이 파일은 agent 폴더 맨 위에 둔다. 아래 경로는 모두 agent 폴더 기준.
+
+# 글꼴 (저작권, 공개 저장소에 올리지 않음)
+*.ttf
+
+# Office 임시 파일
+~$*
+
+# Claude 작업용 문서 (에이전트를 쓰지 않으면 필요 없음)
+/CLAUDE.md
+/REPORT_SPEC.md
+/KICKOFF_PROMPT.md
+/작업_실수기록.md
+/inputs/보고서_골격.md
+/inputs/handover.md
+
+# 원본 데이터와 과제 가이드 (채점자가 가지고 있음)
+/inputs/data/
+/inputs/guide/
+
+# 산출물에서 쓰지 않는 결과 파일과 작업 메모
+/inputs/results/FVA_표.csv
+/inputs/results/compare_summary.csv
+/inputs/results/guide_table.csv
+/inputs/results/오늘정리_2026-10-14.md
+/inputs/results/작업기록_2026-10-16.md
+/inputs/results/REPO_README.md
+
+# 예전 그림
+/figures/fig03_임계비율.png
+/figures/fig04_모형별비용.png
+/figures/fig05_절감액분해.png
+
+# 예전 코드
+/tools/make_docx.js
+/tools/charts.py
+/tools/fix_xml.py
+/tools/build_slides.js
+/tools/build_slides_v2.js
+
+# 예전 버전과 샘플 (최종은 report_v9.docx, slides_v3.pptx)
+/drafts/report.docx
+/drafts/report_v[2-8].docx
+/drafts/slides_v[12].pptx
+/drafts/sample_report.*
+
+# drafts 안의 PDF (제출용 PDF는 저장소 맨 위에 report.pdf, slides.pdf로 따로 둠)
+/drafts/*.pdf
+
+# GitHub 업로드용으로 모아 둔 사본
+/github_upload/

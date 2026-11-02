@@ -1,0 +1,6 @@
+# 실행 결과(output/)와 캐시는 올리지 않습니다. 요약 결과는 results/ 에 있습니다.
+output/
+__pycache__/
+*.pyc
+.venv/
+.ipynb_checkpoints/

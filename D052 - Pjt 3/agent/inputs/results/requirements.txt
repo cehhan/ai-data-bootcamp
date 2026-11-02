@@ -1,0 +1,10 @@
+# 모든 모형을 실행하기 위한 패키지 (Prophet 포함)
+# Python 3.12 이상 권장. 아래 버전은 결과를 만든 환경과 같습니다.
+pandas==3.0.6
+numpy==2.5.4
+scikit-learn==1.9.1
+statsmodels==0.15.0
+lightgbm==4.7.0
+prophet==1.5.0
+chronos-forecasting==2.3.2
+torch==2.14.1
